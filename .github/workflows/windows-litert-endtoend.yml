@@ -1,0 +1,38 @@
+name: Windows LiteRT production-path E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/_internal/worker.ps1'
+      - 'src/_internal/litert_agent.py'
+      - 'src/_internal/pack.json'
+      - 'build/app.cs'
+      - 'build/build-app.ps1'
+      - 'tests/windows-litert-endtoend.ps1'
+      - '.github/workflows/windows-litert-endtoend.yml'
+
+concurrency:
+  group: windows-litert-e2e-main
+  cancel-in-progress: true
+
+jobs:
+  litert-e2e:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Prepare source
+        shell: powershell
+        run: .\build\prepare.ps1
+
+      - name: Build installed test app
+        shell: powershell
+        run: .\build\build-app.ps1
+
+      - name: Run full LiteRT production path with small CI model
+        shell: powershell
+        run: .\tests\windows-litert-endtoend.ps1
