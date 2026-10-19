@@ -74,6 +74,11 @@ namespace AntigravityLocalApp
             }
         }
 
+        public int SuggestedTimeoutMs
+        {
+            get { return String.Equals(route, "LiteRT", StringComparison.OrdinalIgnoreCase) ? 900000 : 240000; }
+        }
+
         public string Run(string prompt, Action<string> status, int timeoutMs)
         {
             if (String.IsNullOrWhiteSpace(prompt)) prompt = "Reply with only: OK";
@@ -301,7 +306,7 @@ namespace AntigravityLocalApp
                             BeginInvoke((MethodInvoker)delegate { statusText.Text = status; });
                         }
                         catch { }
-                    }, 240000);
+                    }, runtime.SuggestedTimeoutMs);
                 });
 
                 statusTitle.Text = "Installation test passed";
@@ -339,7 +344,7 @@ namespace AntigravityLocalApp
                 {
                     if (args != null && args.Length > 0 && String.Equals(args[0], "--self-test", StringComparison.OrdinalIgnoreCase))
                     {
-                        string output = runtime.Run("Reply with only: OK", delegate(string s) { Console.WriteLine(s); }, 240000);
+                        string output = runtime.Run("Reply with only: OK", delegate(string s) { Console.WriteLine(s); }, runtime.SuggestedTimeoutMs);
                         Console.WriteLine(output);
                         return String.IsNullOrWhiteSpace(output) ? 2 : 0;
                     }
