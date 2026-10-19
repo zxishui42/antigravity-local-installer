@@ -41,10 +41,13 @@ Assert-True ([int]$out.configuration_count -gt 100) 'Routing generator did not e
 Assert-True ([int]$out.installer_available_count -gt 0) 'No website configuration maps to a verified installer.'
 
 $cpu16=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 16 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $cpu16 -and $cpu16.profile_id -eq 'windows-ollama-gemma4-12b-qat') 'Windows CPU-only 16 GB did not route to validated 12B profile.'
+Assert-True ($null -ne $cpu16 -and $cpu16.profile_id -eq 'windows-ollama-gemma4-e4b-qat') 'Windows CPU-only 16 GB did not route to validated E4B profile.'
+
+$cpu32=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 32 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $cpu32 -and $cpu32.profile_id -eq 'windows-ollama-gemma4-12b-qat') 'Windows CPU-only 32 GB did not route to validated 12B profile.'
 
 $cpu8=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 8 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $cpu8 -and $cpu8.profile_id -eq 'windows-ollama-gemma4-e2b') 'Windows CPU-only 8 GB did not stay on E2B.'
+Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'no_verified_installer') 'Windows CPU-only 8 GB must stay unverified.'
 
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'no_verified_installer') '24 GB automatic GPU config should remain reserved until LiteRT is verified.'
