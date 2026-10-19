@@ -8,7 +8,8 @@
     "port_start": 11435,
     "port_end": 11455,
     "download_stall_seconds": 300,
-    "version": "3.2-rc1"
+    "version": "3.2-rc1",
+    "litert_lm_version": "0.18.0"
   },
   "profiles": [
     {
