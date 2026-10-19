@@ -1,112 +1,433 @@
 {
-  "schema_version": 1,
+  "schema_version": 2,
   "source": "live-site-selector",
   "source_url": "https://antigravitylocalmodels.com/",
+  "stable_keys_verified": true,
   "operating_systems": {
     "windows": {
       "graphics": {
         "nvidia": [
-          "GeForce RTX 5090 (32 GB)",
-          "GeForce RTX 5080 (16 GB)",
-          "GeForce RTX 5070 Ti (16 GB)",
-          "GeForce RTX 5070 (12 GB)",
-          "GeForce RTX 5060 Ti 16 GB",
-          "GeForce RTX 5060 Ti 8 GB",
-          "GeForce RTX 5060 (8 GB)",
-          "GeForce RTX 5050 (8 GB)",
-          "GeForce RTX 4090 (24 GB)",
-          "GeForce RTX 4080 SUPER (16 GB)",
-          "GeForce RTX 4080 (16 GB)",
-          "GeForce RTX 4070 Ti SUPER (16 GB)",
-          "GeForce RTX 4070 Ti (12 GB)",
-          "GeForce RTX 4070 SUPER (12 GB)",
-          "GeForce RTX 4070 (12 GB)",
-          "GeForce RTX 4060 Ti 16 GB",
-          "GeForce RTX 4060 Ti 8 GB",
-          "GeForce RTX 4060 (8 GB)",
-          "GeForce RTX 3090 Ti (24 GB)",
-          "GeForce RTX 3090 (24 GB)",
-          "GeForce RTX 3080 Ti (12 GB)",
-          "GeForce RTX 3080 12 GB",
-          "GeForce RTX 3080 10 GB",
-          "GeForce RTX 3070 Ti (8 GB)",
-          "GeForce RTX 3070 (8 GB)",
-          "GeForce RTX 3060 Ti (8 GB)",
-          "GeForce RTX 3060 12 GB",
-          "GeForce RTX 3060 8 GB",
-          "GeForce RTX 3050 8 GB",
-          "GeForce RTX 3050 6 GB",
-          "GeForce RTX 5090 Laptop GPU (24 GB)",
-          "GeForce RTX 5080 Laptop GPU (16 GB)",
-          "GeForce RTX 5070 Ti Laptop GPU (12 GB)",
-          "GeForce RTX 5070 Laptop GPU (8 GB)",
-          "GeForce RTX 5060 Laptop GPU (8 GB)",
-          "GeForce RTX 4090 Laptop GPU (16 GB)",
-          "GeForce RTX 4080 Laptop GPU (12 GB)",
-          "GeForce RTX 4070 Laptop GPU (8 GB)",
-          "GeForce RTX 4060 Laptop GPU (8 GB)",
-          "GeForce RTX 4050 Laptop GPU (6 GB)",
-          "RTX A6000 (48 GB)",
-          "RTX A5000 (24 GB)",
-          "RTX A4000 (16 GB)",
-          "RTX 6000 Ada (48 GB)",
-          "NVIDIA L40S (48 GB)",
-          "NVIDIA A100 40 GB",
-          "NVIDIA A100 80 GB",
-          "NVIDIA H100 80 GB"
+          {
+            "id": "rtx-5090-32",
+            "label": "GeForce RTX 5090",
+            "vram_gb": 32
+          },
+          {
+            "id": "rtx-5080-16",
+            "label": "GeForce RTX 5080",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-5070-ti-16",
+            "label": "GeForce RTX 5070 Ti",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-5070-12",
+            "label": "GeForce RTX 5070",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-5060-ti-16",
+            "label": "GeForce RTX 5060 Ti 16 GB",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-5060-ti-8",
+            "label": "GeForce RTX 5060 Ti 8 GB",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-5060-8",
+            "label": "GeForce RTX 5060",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-5050-8",
+            "label": "GeForce RTX 5050",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-4090-24",
+            "label": "GeForce RTX 4090",
+            "vram_gb": 24
+          },
+          {
+            "id": "rtx-4080-super-16",
+            "label": "GeForce RTX 4080 SUPER",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-4080-16",
+            "label": "GeForce RTX 4080",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-4070-ti-super-16",
+            "label": "GeForce RTX 4070 Ti SUPER",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-4070-ti-12",
+            "label": "GeForce RTX 4070 Ti",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-4070-super-12",
+            "label": "GeForce RTX 4070 SUPER",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-4070-12",
+            "label": "GeForce RTX 4070",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-4060-ti-16",
+            "label": "GeForce RTX 4060 Ti 16 GB",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-4060-ti-8",
+            "label": "GeForce RTX 4060 Ti 8 GB",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-4060-8",
+            "label": "GeForce RTX 4060",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-3090-ti-24",
+            "label": "GeForce RTX 3090 Ti",
+            "vram_gb": 24
+          },
+          {
+            "id": "rtx-3090-24",
+            "label": "GeForce RTX 3090",
+            "vram_gb": 24
+          },
+          {
+            "id": "rtx-3080-ti-12",
+            "label": "GeForce RTX 3080 Ti",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-3080-12",
+            "label": "GeForce RTX 3080",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-3080-10",
+            "label": "GeForce RTX 3080",
+            "vram_gb": 10
+          },
+          {
+            "id": "rtx-3070-ti-8",
+            "label": "GeForce RTX 3070 Ti",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-3070-8",
+            "label": "GeForce RTX 3070",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-3060-ti-8",
+            "label": "GeForce RTX 3060 Ti",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-3060-12",
+            "label": "GeForce RTX 3060",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-3060-8",
+            "label": "GeForce RTX 3060",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-3050-8",
+            "label": "GeForce RTX 3050",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-3050-6",
+            "label": "GeForce RTX 3050",
+            "vram_gb": 6
+          },
+          {
+            "id": "rtx-5090-laptop-24",
+            "label": "GeForce RTX 5090 Laptop GPU",
+            "vram_gb": 24
+          },
+          {
+            "id": "rtx-5080-laptop-16",
+            "label": "GeForce RTX 5080 Laptop GPU",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-5070-laptop-12",
+            "label": "GeForce RTX 5070 Laptop GPU",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-5060-laptop-8",
+            "label": "GeForce RTX 5060 Laptop GPU",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-4090-laptop-16",
+            "label": "GeForce RTX 4090 Laptop GPU",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-4080-laptop-12",
+            "label": "GeForce RTX 4080 Laptop GPU",
+            "vram_gb": 12
+          },
+          {
+            "id": "rtx-4070-laptop-8",
+            "label": "GeForce RTX 4070 Laptop GPU",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-4060-laptop-8",
+            "label": "GeForce RTX 4060 Laptop GPU",
+            "vram_gb": 8
+          },
+          {
+            "id": "rtx-4050-laptop-6",
+            "label": "GeForce RTX 4050 Laptop GPU",
+            "vram_gb": 6
+          },
+          {
+            "id": "rtx-a6000-48",
+            "label": "RTX A6000",
+            "vram_gb": 48
+          },
+          {
+            "id": "rtx-a5000-24",
+            "label": "RTX A5000",
+            "vram_gb": 24
+          },
+          {
+            "id": "rtx-a4000-16",
+            "label": "RTX A4000",
+            "vram_gb": 16
+          },
+          {
+            "id": "rtx-6000-ada-48",
+            "label": "RTX 6000 Ada",
+            "vram_gb": 48
+          },
+          {
+            "id": "l40s-48",
+            "label": "NVIDIA L40S",
+            "vram_gb": 48
+          },
+          {
+            "id": "a100-40",
+            "label": "NVIDIA A100",
+            "vram_gb": 40
+          },
+          {
+            "id": "a100-80",
+            "label": "NVIDIA A100",
+            "vram_gb": 80
+          },
+          {
+            "id": "h100-80",
+            "label": "NVIDIA H100",
+            "vram_gb": 80
+          }
         ],
         "amd": [
-          "Radeon RX 9070 XT (16 GB)",
-          "Radeon RX 9070 (16 GB)",
-          "Radeon RX 7900 XTX (24 GB)",
-          "Radeon RX 7900 XT (20 GB)",
-          "Radeon RX 7900 GRE (16 GB)",
-          "Radeon RX 7800 XT (16 GB)",
-          "Radeon RX 7700 XT (12 GB)",
-          "Radeon RX 7600 XT (16 GB)",
-          "Radeon RX 7600 (8 GB)",
-          "Radeon RX 6950 XT (16 GB)",
-          "Radeon RX 6900 XT (16 GB)",
-          "Radeon RX 6800 XT (16 GB)",
-          "Radeon RX 6800 (16 GB)",
-          "Radeon RX 6750 XT (12 GB)",
-          "Radeon RX 6700 XT (12 GB)",
-          "Radeon RX 6650 XT (8 GB)",
-          "Radeon RX 6600 XT (8 GB)",
-          "Radeon RX 6600 (8 GB)",
-          "Radeon PRO W7900 (48 GB)",
-          "Radeon PRO W7800 (32 GB)"
+          {
+            "id": "rx-9070-xt-16",
+            "label": "Radeon RX 9070 XT",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-9070-16",
+            "label": "Radeon RX 9070",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-7900-xtx-24",
+            "label": "Radeon RX 7900 XTX",
+            "vram_gb": 24
+          },
+          {
+            "id": "rx-7900-xt-20",
+            "label": "Radeon RX 7900 XT",
+            "vram_gb": 20
+          },
+          {
+            "id": "rx-7900-gre-16",
+            "label": "Radeon RX 7900 GRE",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-7800-xt-16",
+            "label": "Radeon RX 7800 XT",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-7700-xt-12",
+            "label": "Radeon RX 7700 XT",
+            "vram_gb": 12
+          },
+          {
+            "id": "rx-7600-xt-16",
+            "label": "Radeon RX 7600 XT",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-7600-8",
+            "label": "Radeon RX 7600",
+            "vram_gb": 8
+          },
+          {
+            "id": "rx-6950-xt-16",
+            "label": "Radeon RX 6950 XT",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-6900-xt-16",
+            "label": "Radeon RX 6900 XT",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-6800-xt-16",
+            "label": "Radeon RX 6800 XT",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-6800-16",
+            "label": "Radeon RX 6800",
+            "vram_gb": 16
+          },
+          {
+            "id": "rx-6750-xt-12",
+            "label": "Radeon RX 6750 XT",
+            "vram_gb": 12
+          },
+          {
+            "id": "rx-6700-xt-12",
+            "label": "Radeon RX 6700 XT",
+            "vram_gb": 12
+          },
+          {
+            "id": "rx-6650-xt-8",
+            "label": "Radeon RX 6650 XT",
+            "vram_gb": 8
+          },
+          {
+            "id": "rx-6600-xt-8",
+            "label": "Radeon RX 6600 XT",
+            "vram_gb": 8
+          },
+          {
+            "id": "rx-6600-8",
+            "label": "Radeon RX 6600",
+            "vram_gb": 8
+          },
+          {
+            "id": "pro-w7900-48",
+            "label": "Radeon PRO W7900",
+            "vram_gb": 48
+          },
+          {
+            "id": "pro-w7800-32",
+            "label": "Radeon PRO W7800",
+            "vram_gb": 32
+          }
         ],
-        "cpu-only": [
-          8,
-          16,
-          32,
-          64,
-          128
-        ]
+        "cpu-only": {
+          "memory_gb": [
+            8,
+            16,
+            32,
+            64,
+            128
+          ]
+        }
       }
     },
     "macos": {
       "graphics": {
         "apple-silicon": {
           "chips": [
-            "Apple M1",
-            "Apple M1 Pro",
-            "Apple M1 Max",
-            "Apple M1 Ultra",
-            "Apple M2",
-            "Apple M2 Pro",
-            "Apple M2 Max",
-            "Apple M2 Ultra",
-            "Apple M3",
-            "Apple M3 Pro",
-            "Apple M3 Max",
-            "Apple M4",
-            "Apple M4 Pro",
-            "Apple M4 Max",
-            "Apple M5",
-            "Apple M5 Pro",
-            "Apple M5 Max"
+            {
+              "id": "m1",
+              "label": "Apple M1"
+            },
+            {
+              "id": "m1-pro",
+              "label": "Apple M1 Pro"
+            },
+            {
+              "id": "m1-max",
+              "label": "Apple M1 Max"
+            },
+            {
+              "id": "m1-ultra",
+              "label": "Apple M1 Ultra"
+            },
+            {
+              "id": "m2",
+              "label": "Apple M2"
+            },
+            {
+              "id": "m2-pro",
+              "label": "Apple M2 Pro"
+            },
+            {
+              "id": "m2-max",
+              "label": "Apple M2 Max"
+            },
+            {
+              "id": "m2-ultra",
+              "label": "Apple M2 Ultra"
+            },
+            {
+              "id": "m3",
+              "label": "Apple M3"
+            },
+            {
+              "id": "m3-pro",
+              "label": "Apple M3 Pro"
+            },
+            {
+              "id": "m3-max",
+              "label": "Apple M3 Max"
+            },
+            {
+              "id": "m4",
+              "label": "Apple M4"
+            },
+            {
+              "id": "m4-pro",
+              "label": "Apple M4 Pro"
+            },
+            {
+              "id": "m4-max",
+              "label": "Apple M4 Max"
+            },
+            {
+              "id": "m5",
+              "label": "Apple M5"
+            },
+            {
+              "id": "m5-pro",
+              "label": "Apple M5 Pro"
+            },
+            {
+              "id": "m5-max",
+              "label": "Apple M5 Max"
+            }
           ],
           "memory_gb": [
             8,
@@ -122,32 +443,45 @@
             192
           ]
         },
-        "cpu-only": [
-          8,
-          16,
-          32,
-          64,
-          128
-        ]
+        "cpu-only": {
+          "memory_gb": [
+            8,
+            16,
+            32,
+            64,
+            128
+          ]
+        }
       }
     },
     "linux": {
       "graphics": {
         "nvidia": "same-as-windows",
         "amd": "same-as-windows",
-        "cpu-only": [
-          8,
-          16,
-          32,
-          64,
-          128
-        ]
+        "cpu-only": {
+          "memory_gb": [
+            8,
+            16,
+            32,
+            64,
+            128
+          ]
+        }
       }
     }
   },
   "runtimes": [
-    "automatic",
-    "ollama",
-    "litert"
+    {
+      "id": "automatic",
+      "label": "Automatic"
+    },
+    {
+      "id": "ollama",
+      "label": "Ollama"
+    },
+    {
+      "id": "litert",
+      "label": "LiteRT"
+    }
   ]
 }
