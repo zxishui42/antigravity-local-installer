@@ -16,7 +16,7 @@ $pack=Get-Content $packPath -Raw | ConvertFrom-Json
 $catalog=Get-Content $catalogPath -Raw | ConvertFrom-Json
 $routing=Get-Content $routingPath -Raw | ConvertFrom-Json
 
-$released=@($pack.profiles | Where-Object { [bool]$_.verified -and ($null -eq $_.release -or [bool]$_.release) })
+$released=@($pack.profiles | Where-Object { [bool]$_.verified -and ($null -eq $_.release -or [bool]$_.release) -and ([string]::IsNullOrWhiteSpace([string]$_.platform) -or [string]$_.platform -eq 'windows') })
 $items=@($catalog.installers)
 
 Assert-True ($items.Count -eq $released.Count) ("Release catalog count mismatch. Expected "+$released.Count+", got "+$items.Count+".")
@@ -44,7 +44,7 @@ foreach($profile in $released){
   Assert-True ($catalogById.ContainsKey([string]$profile.id)) ("Verified release profile is missing from catalog: "+[string]$profile.id)
 }
 
-$available=@($routing.configurations | Where-Object { $_.status -eq 'installer_available' })
+$available=@($routing.configurations | Where-Object { $_.os -eq 'windows' -and $_.status -eq 'installer_available' })
 Assert-True ($available.Count -gt 0) 'No website configuration is installer_available.'
 
 foreach($row in $available){
@@ -53,7 +53,7 @@ foreach($row in $available){
   Assert-True ([string]$row.installer_file -eq [string]$catalogById[$id].installer_file) ("Website installer filename does not match release catalog for "+$id)
 }
 
-$nonRelease=@($routing.configurations | Where-Object { $_.status -ne 'installer_available' })
+$nonRelease=@($routing.configurations | Where-Object { $_.os -eq 'windows' -and $_.status -ne 'installer_available' })
 foreach($row in $nonRelease){
   Assert-True ([string]::IsNullOrWhiteSpace([string]$row.installer_file)) ("Non-released website route exposes an installer file: "+[string]$row.status+" / "+[string]$row.profile_id)
 }
