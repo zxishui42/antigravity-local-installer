@@ -72,7 +72,8 @@ $testEnd=$worker.IndexOf('function Write-UserLauncher',$testStart)
 Assert-True ($testStart -ge 0 -and $testEnd -gt $testStart) 'Test-Antigravity block missing.'
 $testBlock=$worker.Substring($testStart,$testEnd-$testStart)
 Assert-True ($testBlock.Contains('$codeFile=')) 'Antigravity test has no status sidecar.'
-Assert-True ($testBlock.Contains('$nativeCode=$LASTEXITCODE')) 'Child wrapper does not record LASTEXITCODE.'
+Assert-True ($testBlock.Contains('LASTEXITCODE')) 'Child wrapper does not record LASTEXITCODE.'
+Assert-True ($testBlock.Contains('Set-Content -LiteralPath')) 'Child wrapper does not persist its exit status.'
 Assert-True ($testBlock.Contains('agent-test-wrapper.ps1')) 'Child wrapper file is missing.'
 Assert-True (-not $testBlock.Contains('$p.ExitCode')) 'Antigravity test still depends on unreliable parent ExitCode.'
 Assert-True ($testBlock.Contains('if($null -eq $exitCode -or $exitCode -ne 0)')) 'Sidecar success check is not null-safe.'
