@@ -134,6 +134,10 @@ function Test-Antigravity {
     $outFile=Join-Path $RunRoot 'agent-test.out';$errFile=Join-Path $RunRoot 'agent-test.err';Remove-Item $outFile,$errFile -Force -ErrorAction SilentlyContinue
     $p=Start-Process -FilePath $PythonExe -ArgumentList @((Join-Path $InstallRoot 'local_agent.py')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $outFile -RedirectStandardError $errFile
     if(-not $p.WaitForExit(180000)){try{$p.Kill()}catch{};throw 'Antigravity connection test timed out.'}
+    # On Windows PowerShell 5, the timed WaitForExit overload can leave ExitCode unavailable
+    # when stdout/stderr are redirected. A final parameterless WaitForExit drains the async
+    # redirect handles and makes the exit code reliable.
+    $p.WaitForExit()
     $p.Refresh()
     $exitCode=$p.ExitCode
     $o=if(Test-Path $outFile){Get-Content $outFile -Raw}else{''};$e=if(Test-Path $errFile){Get-Content $errFile -Raw}else{''};Log "Antigravity output: $o";if($e){Log "Antigravity stderr: $e"};Log "Antigravity exit code: $exitCode"
