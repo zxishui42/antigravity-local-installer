@@ -76,6 +76,7 @@ $DriveRoot=$TargetDrive.TrimEnd('\') + '\'
 $InstallRoot=Join-Path $DriveRoot ('AntigravityLocal\'+[string]$Pack.install_folder)
 $ModelRoot=Join-Path $InstallRoot 'models'
 $LiteRTModelFile=Join-Path $ModelRoot 'model.litertlm'
+$LiteRTCacheDir=Join-Path $InstallRoot 'litert-cache'
 $RuntimeRoot=Join-Path $InstallRoot 'runtime'
 $PythonRoot=Join-Path $RuntimeRoot 'python'
 $PythonExe=Join-Path $PythonRoot 'python.exe'
@@ -183,7 +184,7 @@ function Install-Antigravity {
     Status 'Preparing Antigravity' 'Installing Antigravity in the private runtime.' 'No system Python settings are changed.' 38
     $package="google-antigravity==$($Pack.antigravity_version)"
     $args=@('-m','pip','install','--disable-pip-version-check','--no-input','--no-warn-script-location',$package)
-    if([string]$Pack.route -eq 'LiteRT'){$args += 'litert-lm'}
+    if([string]$Pack.route -eq 'LiteRT'){$args += ("litert-lm=="+[string]$Pack.litert_lm_version)}
     $code=Invoke-NativeLogged $PythonExe $args
     if($code -ne 0){throw 'The Antigravity runtime could not be installed.'}
     $verifyFile=Join-Path $RunRoot 'verify_sdk.py'
@@ -296,6 +297,7 @@ function Test-LiteRTAntigravity {
     $psi.EnvironmentVariables['ANTIGRAVITY_LOCAL_PROMPT']='Reply with only: OK'
     $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_MODEL_PATH']=$LiteRTModelFile
     $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_BACKEND']=if([string]::IsNullOrWhiteSpace([string]$Pack.litert_backend)){'gpu'}else{[string]$Pack.litert_backend}
+    $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_CACHE_DIR']=$LiteRTCacheDir
     $p=New-Object System.Diagnostics.Process
     $p.StartInfo=$psi
     [void]$p.Start()
@@ -385,7 +387,7 @@ try {
     Register-Uninstaller
     $modelPathValue=if($isLiteRT){$LiteRTModelFile}else{''}
     $portValue=if($isLiteRT){0}else{$PrivatePort}
-    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;route=$Pack.route;model=$Pack.model;model_label=$Pack.model_label;model_path=$modelPathValue;litert_backend=$(if($isLiteRT){[string]$Pack.litert_backend}else{''});installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$portValue;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
+    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;route=$Pack.route;model=$Pack.model;model_label=$Pack.model_label;model_path=$modelPathValue;litert_backend=$(if($isLiteRT){[string]$Pack.litert_backend}else{''});litert_cache_dir=$(if($isLiteRT){$LiteRTCacheDir}else{''});installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$portValue;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
     if(-not$isLiteRT){Stop-PrivateOllama}
     $accel=if($isLiteRT){'The LiteRT GPU installation test passed.'}elseif($vram -gt 0){'GPU acceleration was detected.'}else{'The setup works. GPU acceleration was not detected in this test, so it may run more slowly.'}
     Status 'Installation complete' 'The local setup is ready.' ("Installed setup: "+[string]$Pack.model_label+". "+$accel+" Files are stored on "+$TargetDrive+". Use the Installation Test shortcut to verify it again later.") 100 'success'
