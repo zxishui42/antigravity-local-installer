@@ -10,6 +10,8 @@ $profile=@($catalog.profiles | Where-Object { [string]$_.id -eq $ProfileId } | S
 
 if($null -eq $profile){ throw "Unknown installer profile: $ProfileId" }
 if(-not [bool]$profile.verified){ throw "Profile is not marked verified and cannot be released: $ProfileId" }
+if(-not[string]::IsNullOrWhiteSpace([string]$profile.platform) -and [string]$profile.platform -ne 'windows'){ throw "This builder only produces Windows installers: $ProfileId" }
+if($null -ne $profile.release -and -not[bool]$profile.release){ throw "Profile is not released: $ProfileId" }
 
 & (Join-Path $PSScriptRoot 'prepare.ps1')
 
