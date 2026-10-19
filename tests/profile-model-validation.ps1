@@ -37,7 +37,7 @@ $venv=Join-Path $env:RUNNER_TEMP ('ag-profile-'+$ProfileId+'-venv')
 Remove-Item $venv -Recurse -Force -ErrorAction SilentlyContinue
 python -m venv $venv
 $py=Join-Path $venv 'Scripts\python.exe'
-& $py -m pip install --disable-pip-version-check --no-input ("google-antigravity="+([string]$config.shared.antigravity_version))
+& $py -m pip install --disable-pip-version-check --no-input ("google-antigravity=="+([string]$config.shared.antigravity_version))
 if($LASTEXITCODE -ne 0){ throw 'Antigravity SDK installation failed.' }
 & $py -c "from google.antigravity import Agent, LocalOpenAIAgentConfig; print('antigravity import ok')"
 if($LASTEXITCODE -ne 0){ throw 'Antigravity SDK import failed.' }
