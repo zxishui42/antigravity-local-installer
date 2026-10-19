@@ -200,7 +200,7 @@ $timer.Add_Tick({
         $timer.Stop(); $progress.Style='Blocks'; $progress.Value=100
         $statusTitle.Text='Installation complete'
         $statusText.Text='Your local Antigravity setup is installed and ready.'
-        $details.Text='Run the installation test once to confirm this PC can start the model and return a response.'
+        $details.Text='Run the installation test once to confirm this PC can start the model and return a response. If this button does not open it, use the Antigravity Installation Test shortcut on your desktop.'
         $primary.Visible=$false; $secondary.Text='Finish'; $secondary.Enabled=$true
         $openButton.Visible=$true; $copy.Visible=$false
     } elseif ($s.state -eq 'error') {
