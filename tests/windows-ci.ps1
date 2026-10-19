@@ -14,7 +14,10 @@ Write-Host '1) Parse production PowerShell'
 foreach($file in @('_internal/worker.ps1','_internal/installer.ps1')){
   $tokens=$null; $errors=$null
   [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file),[ref]$tokens,[ref]$errors)
-  Assert-True ($errors.Count -eq 0) ("$file parse errors: "+(($errors|ForEach-Object Message)-join '; '))
+  if($errors.Count -gt 0){
+    $detail=($errors | ForEach-Object { ('line '+$_.Extent.StartLineNumber+' near ['+$_.Extent.Text+']: '+$_.Message) }) -join '; '
+    throw ("ASSERT FAILED: $file parse errors: "+$detail)
+  }
 }
 
 Write-Host '2) Validate package config'
