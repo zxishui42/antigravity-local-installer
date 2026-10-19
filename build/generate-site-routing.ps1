@@ -38,14 +38,14 @@ function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime,$VramGb,
     return [pscustomobject]@{rule=$rule;profile=$profile}
 }
 
-function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphics,[string]$Hardware,[object]$Memory,[string]$Runtime){
-    $vram=Get-VramGb $Hardware
-    $resolved=Resolve-Profile $Os $Graphics $Runtime $vram $Memory
+function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphics,[string]$HardwareId,[string]$HardwareLabel,$VramGb,$Memory,[string]$Runtime){
+    $resolved=Resolve-Profile $Os $Graphics $Runtime $VramGb $Memory
     $row=[ordered]@{
         os=$Os
         graphics=$Graphics
-        hardware=$Hardware
-        vram_gb=$vram
+        hardware_id=$HardwareId
+        hardware=$HardwareLabel
+        vram_gb=$VramGb
         memory_gb=$Memory
         runtime=$Runtime
         status=[string]$routing.default_status
@@ -61,9 +61,8 @@ function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphi
     }
     [void]$Rows.Add([pscustomobject]$row)
 }
-
 $rows=New-Object System.Collections.ArrayList
-$runtimes=@($hardware.runtimes)
+$runtimes=@($hardware.runtimes | ForEach-Object { [string]$_.id })
 
 foreach($osName in @('windows','macos','linux')){
     $os=$hardware.operating_systems.$osName
@@ -76,7 +75,9 @@ foreach($osName in @('windows','macos','linux')){
                 $models=@($hardware.operating_systems.windows.graphics.$graphicsName)
             }
             foreach($model in $models){
-                foreach($runtime in $runtimes){ Add-Row $rows $osName $graphicsName ([string]$model) $null ([string]$runtime) }
+                foreach($runtime in $runtimes){
+                    Add-Row $rows $osName $graphicsName ([string]$model.id) ([string]$model.label) ([int]$model.vram_gb) $null ([string]$runtime)
+                }
             }
             continue
         }
@@ -84,20 +85,23 @@ foreach($osName in @('windows','macos','linux')){
         if($graphicsName -eq 'apple-silicon'){
             foreach($chip in @($value.chips)){
                 foreach($mem in @($value.memory_gb)){
-                    foreach($runtime in $runtimes){ Add-Row $rows $osName $graphicsName ([string]$chip) ([int]$mem) ([string]$runtime) }
+                    foreach($runtime in $runtimes){
+                        Add-Row $rows $osName $graphicsName ([string]$chip.id) ([string]$chip.label) $null ([int]$mem) ([string]$runtime)
+                    }
                 }
             }
             continue
         }
 
         if($graphicsName -eq 'cpu-only'){
-            foreach($mem in @($value)){
-                foreach($runtime in $runtimes){ Add-Row $rows $osName $graphicsName 'CPU only' ([int]$mem) ([string]$runtime) }
+            foreach($mem in @($value.memory_gb)){
+                foreach($runtime in $runtimes){
+                    Add-Row $rows $osName $graphicsName 'cpu-only' 'CPU only' $null ([int]$mem) ([string]$runtime)
+                }
             }
         }
     }
 }
-
 $outDir=Join-Path $repoRoot 'dist'
 New-Item -ItemType Directory -Force -Path $outDir | Out-Null
 $out=Join-Path $outDir 'site-installer-routing.json'
