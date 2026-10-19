@@ -295,7 +295,7 @@ function Test-LiteRTAntigravity {
     $psi.RedirectStandardError=$true
     $psi.EnvironmentVariables['ANTIGRAVITY_LOCAL_PROMPT']='Reply with only: OK'
     $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_MODEL_PATH']=$LiteRTModelFile
-    $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_BACKEND']='gpu'
+    $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_BACKEND']=if([string]::IsNullOrWhiteSpace([string]$Pack.litert_backend)){'gpu'}else{[string]$Pack.litert_backend}
     $p=New-Object System.Diagnostics.Process
     $p.StartInfo=$psi
     [void]$p.Start()
@@ -385,7 +385,7 @@ try {
     Register-Uninstaller
     $modelPathValue=if($isLiteRT){$LiteRTModelFile}else{''}
     $portValue=if($isLiteRT){0}else{$PrivatePort}
-    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;route=$Pack.route;model=$Pack.model;model_label=$Pack.model_label;model_path=$modelPathValue;installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$portValue;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
+    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;route=$Pack.route;model=$Pack.model;model_label=$Pack.model_label;model_path=$modelPathValue;litert_backend=$(if($isLiteRT){[string]$Pack.litert_backend}else{''});installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$portValue;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
     if(-not$isLiteRT){Stop-PrivateOllama}
     $accel=if($isLiteRT){'The LiteRT GPU installation test passed.'}elseif($vram -gt 0){'GPU acceleration was detected.'}else{'The setup works. GPU acceleration was not detected in this test, so it may run more slowly.'}
     Status 'Installation complete' 'The local setup is ready.' ("Installed setup: "+[string]$Pack.model_label+". "+$accel+" Files are stored on "+$TargetDrive+". Use the Installation Test shortcut to verify it again later.") 100 'success'
