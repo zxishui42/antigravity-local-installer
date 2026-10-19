@@ -259,8 +259,11 @@ function Download-LiteRTModel {
     $job=$null
     try {
         $job=Start-BitsTransfer -Source ([string]$Pack.litert_download_url) -Destination $tmp -Asynchronous -DisplayName ('Antigravity Local '+[string]$Pack.id)
+        $jobId=$job.JobId
+        if($null -eq $jobId){$jobId=$job.Id}
+        if($null -eq $jobId){throw 'The Windows download service did not return a job id.'}
         while($true){
-            $job=Get-BitsTransfer -Id $job.Id -ErrorAction Stop
+            $job=Get-BitsTransfer -JobId $jobId -ErrorAction Stop
             if($job.JobState -eq 'Transferred'){Complete-BitsTransfer -BitsJob $job;break}
             if($job.JobState -eq 'Error' -or $job.JobState -eq 'Cancelled'){throw ('LiteRT model download failed: '+[string]$job.ErrorDescription)}
             $total=[long]$Pack.model_size_bytes
