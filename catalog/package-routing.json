@@ -2,7 +2,7 @@
   "schema_version": 1,
   "rules": [
     {
-      "id": "windows-ollama-current",
+      "id": "windows-explicit-ollama-e2b",
       "priority": 100,
       "match": {
         "os": [
@@ -14,14 +14,56 @@
           "cpu-only"
         ],
         "runtime": [
-          "automatic",
           "ollama"
         ]
       },
       "profile_id": "windows-ollama-gemma4-e2b",
       "status": "installer_available",
       "final_check": "installer"
+    },
+    {
+      "id": "windows-auto-gpu-under24-e2b",
+      "priority": 110,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "nvidia",
+          "amd"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "max_vram_gb": 23
+      },
+      "profile_id": "windows-ollama-gemma4-e2b",
+      "status": "installer_available",
+      "final_check": "installer"
+    },
+    {
+      "id": "windows-auto-cpu-e2b",
+      "priority": 110,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "min_memory_gb": 8
+      },
+      "profile_id": "windows-ollama-gemma4-e2b",
+      "status": "installer_available",
+      "final_check": "installer"
     }
   ],
-  "default_status": "no_verified_installer"
+  "default_status": "no_verified_installer",
+  "notes": [
+    "Automatic GPU configurations at 24 GB VRAM or above are intentionally not mapped to the Ollama E2B package because the live site currently points that tier toward LiteRT.",
+    "A configuration is only marked installer_available when its target profile is verified."
+  ]
 }
