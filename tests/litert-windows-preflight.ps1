@@ -26,7 +26,7 @@ $py=Join-Path $venv 'Scripts\python.exe'
 $pip=Join-Path $venv 'Scripts\pip.exe'
 
 Write-Host 'A) Install exact Antigravity SDK + LiteRT-LM'
-& $py -m pip install --disable-pip-version-check --no-input ("google-antigravity=="+([string]$config.shared.antigravity_version)) litert-lm
+& $py -m pip install --disable-pip-version-check --no-input ("google-antigravity=="+([string]$config.shared.antigravity_version)) ("litert-lm=="+([string]$config.shared.litert_lm_version))
 if($LASTEXITCODE -ne 0){ throw 'LiteRT dependency installation failed.' }
 
 Write-Host 'B) Import the production classes'
