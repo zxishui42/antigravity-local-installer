@@ -2,7 +2,7 @@
   "schema_version": 1,
   "rules": [
     {
-      "id": "windows-cpu-16plus-12b",
+      "id": "windows-cpu-32plus-12b",
       "priority": 300,
       "match": {
         "os": [
@@ -15,14 +15,35 @@
           "automatic",
           "ollama"
         ],
-        "min_memory_gb": 16
+        "min_memory_gb": 32
       },
       "profile_id": "windows-ollama-gemma4-12b-qat",
       "status": "installer_available",
       "final_check": "installer"
     },
     {
-      "id": "windows-explicit-ollama-e2b",
+      "id": "windows-cpu-16to31-e4b",
+      "priority": 250,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "automatic",
+          "ollama"
+        ],
+        "min_memory_gb": 16,
+        "max_memory_gb": 31
+      },
+      "profile_id": "windows-ollama-gemma4-e4b-qat",
+      "status": "installer_available",
+      "final_check": "installer"
+    },
+    {
+      "id": "windows-explicit-ollama-gpu-e2b",
       "priority": 100,
       "match": {
         "os": [
@@ -30,8 +51,7 @@
         ],
         "graphics": [
           "nvidia",
-          "amd",
-          "cpu-only"
+          "amd"
         ],
         "runtime": [
           "ollama"
@@ -60,31 +80,14 @@
       "profile_id": "windows-ollama-gemma4-e2b",
       "status": "installer_available",
       "final_check": "installer"
-    },
-    {
-      "id": "windows-auto-cpu-e2b",
-      "priority": 110,
-      "match": {
-        "os": [
-          "windows"
-        ],
-        "graphics": [
-          "cpu-only"
-        ],
-        "runtime": [
-          "automatic"
-        ],
-        "min_memory_gb": 8
-      },
-      "profile_id": "windows-ollama-gemma4-e2b",
-      "status": "installer_available",
-      "final_check": "installer"
     }
   ],
   "default_status": "no_verified_installer",
   "notes": [
-    "Automatic GPU configurations at 24 GB VRAM or above are intentionally not mapped to the Ollama E2B package because the live site currently points that tier toward LiteRT.",
-    "A configuration is only marked installer_available when its target profile is verified.",
-    "The 12B CPU profile is only routed to 16 GB+ CPU-only configurations because that exact class passed a real Windows 16 GB no-GPU integration run."
+    "Windows CPU-only 8 GB stays no_verified_installer because no paid package has been validated for that RAM class.",
+    "Windows CPU-only 16 GB routes to the smaller E4B QAT profile; 32 GB and above routes to the validated 12B QAT profile.",
+    "Automatic GPU configurations at 24 GB VRAM or above are intentionally not mapped to Ollama because the live site points that tier toward LiteRT.",
+    "Explicit Ollama GPU configurations below or above 24 GB use the verified E2B package for now; the installer rechecks actual Windows RAM before making changes.",
+    "A configuration is only marked installer_available when its target profile is verified."
   ]
 }
