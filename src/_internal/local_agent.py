@@ -3,8 +3,8 @@ import os
 import sys
 from google.antigravity import Agent, LocalOpenAIAgentConfig
 
-MODEL = "__MODEL__"
-BASE_URL = "__BASE_URL__"
+MODEL = os.environ.get("ANTIGRAVITY_LOCAL_MODEL", "__MODEL__")
+BASE_URL = os.environ.get("ANTIGRAVITY_LOCAL_BASE_URL", "__BASE_URL__")
 
 async def run(prompt: str):
     config = LocalOpenAIAgentConfig(model=MODEL, base_url=BASE_URL).lightweight()
