@@ -182,82 +182,108 @@ namespace AntigravityLocalApp
 
     internal sealed class MainForm : Form
     {
-        private readonly TextBox input;
-        private readonly TextBox output;
         private readonly Button run;
+        private readonly Label statusTitle;
+        private readonly Label statusText;
+        private readonly Label nextStep;
         private readonly LocalRuntime runtime;
 
         public MainForm(LocalRuntime localRuntime)
         {
             runtime = localRuntime;
-            Text = "Antigravity Local";
+            Text = "Antigravity Installation Test";
             StartPosition = FormStartPosition.CenterScreen;
-            Size = new Size(620, 430);
+            Size = new Size(650, 500);
+            MinimumSize = new Size(650, 500);
             BackColor = Color.White;
             Font = new Font("Segoe UI", 10);
 
             Label title = new Label();
-            title.Text = "Antigravity Local";
-            title.Font = new Font("Segoe UI Semibold", 18);
+            title.Text = "Installation test";
+            title.Font = new Font("Segoe UI Semibold", 20);
             title.AutoSize = true;
-            title.Location = new Point(25, 20);
+            title.Location = new Point(34, 28);
             Controls.Add(title);
 
-            Label hint = new Label();
-            hint.Text = "Enter a prompt.";
-            hint.AutoSize = true;
-            hint.Location = new Point(28, 67);
-            Controls.Add(hint);
+            Label intro = new Label();
+            intro.Text = "This window only checks that your local Antigravity setup was installed correctly.\r\nIt is not the product itself.";
+            intro.ForeColor = Color.FromArgb(70, 70, 70);
+            intro.Size = new Size(560, 48);
+            intro.Location = new Point(38, 76);
+            Controls.Add(intro);
 
-            input = new TextBox();
-            input.Multiline = true;
-            input.Location = new Point(30, 95);
-            input.Size = new Size(540, 72);
-            input.Text = "Reply with only: OK";
-            Controls.Add(input);
+            Panel line = new Panel();
+            line.BackColor = Color.Black;
+            line.Location = new Point(38, 132);
+            line.Size = new Size(555, 1);
+            Controls.Add(line);
+
+            Label checks = new Label();
+            checks.Text = "The test will start the local model, check the Antigravity connection, and confirm that a response comes back.";
+            checks.Size = new Size(555, 52);
+            checks.Location = new Point(38, 155);
+            Controls.Add(checks);
 
             run = new Button();
-            run.Text = "Run";
-            run.Location = new Point(30, 184);
-            run.Size = new Size(110, 38);
+            run.Text = "Run installation test";
+            run.Location = new Point(40, 218);
+            run.Size = new Size(190, 42);
             run.BackColor = Color.Black;
             run.ForeColor = Color.White;
             run.FlatStyle = FlatStyle.Flat;
             run.Click += Run_Click;
             Controls.Add(run);
 
-            output = new TextBox();
-            output.Multiline = true;
-            output.ReadOnly = true;
-            output.ScrollBars = ScrollBars.Vertical;
-            output.Location = new Point(30, 240);
-            output.Size = new Size(540, 115);
-            Controls.Add(output);
+            statusTitle = new Label();
+            statusTitle.Text = "Not tested yet";
+            statusTitle.Font = new Font("Segoe UI Semibold", 14);
+            statusTitle.AutoSize = true;
+            statusTitle.Location = new Point(38, 292);
+            Controls.Add(statusTitle);
+
+            statusText = new Label();
+            statusText.Text = "Run the test once after installation.";
+            statusText.Size = new Size(555, 48);
+            statusText.Location = new Point(40, 330);
+            Controls.Add(statusText);
+
+            nextStep = new Label();
+            nextStep.Text = "After a successful test, you can close this window. Your local setup stays installed on this PC. Keep the desktop shortcut only if you want to test the installation again.";
+            nextStep.ForeColor = Color.FromArgb(90, 90, 90);
+            nextStep.Size = new Size(555, 62);
+            nextStep.Location = new Point(40, 385);
+            Controls.Add(nextStep);
         }
 
         private async void Run_Click(object sender, EventArgs e)
         {
             run.Enabled = false;
-            output.Text = "Starting local model...";
+            statusTitle.Text = "Testing installation";
+            statusText.Text = "Starting the local model...";
+
             try
             {
-                string prompt = input.Text;
                 string result = await Task.Run(delegate
                 {
-                    return runtime.Run(prompt, delegate(string status)
+                    return runtime.Run("Reply with only: OK", delegate(string status)
                     {
                         try
                         {
-                            BeginInvoke((MethodInvoker)delegate { output.Text = status; });
+                            BeginInvoke((MethodInvoker)delegate { statusText.Text = status; });
                         }
                         catch { }
                     }, 240000);
                 });
-                output.Text = result;
+
+                statusTitle.Text = "Installation test passed";
+                statusText.Text = "Everything is working correctly. Your installation is complete.";
+                nextStep.Text = "Next step: Close this window. Your local Antigravity setup is ready on this PC. This test window is only here to verify the installation.";
             }
             catch (Exception ex)
             {
-                output.Text = "The local setup returned an error.\r\n" + ex.Message;
+                statusTitle.Text = "Installation test failed";
+                statusText.Text = "The setup needs attention. Take a screenshot of this message and send it to support.\r\n\r\n" + ex.Message;
+                nextStep.Text = "Do not reinstall manually or run commands. Send this screen to support so the installation can be fixed.";
             }
             finally
             {
