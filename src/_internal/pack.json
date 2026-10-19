@@ -179,7 +179,8 @@
       "litert_download_url": "https://huggingface.co/litert-community/gemma-4-26B-A4B-it-litert-lm/resolve/main/gemma-4-26B-A4B-it-gpu.litertlm?download=true",
       "model_size_bytes": 15786524672,
       "model_sha256": "94bbde2453dd9b67c61c16017af331e5841cbbd9edf83bd2f84bc73e2a7cbdb1",
-      "litert_backend": "gpu"
+      "litert_backend": "gpu",
+      "release_gate": "native_e2e_and_physical_nvidia_24gb"
     },
     {
       "id": "ci-windows-litert-gemma4-e2b-cpu",
@@ -223,7 +224,8 @@
       "verified": false,
       "release": false,
       "verification_status": "candidate_requires_physical_8gb_windows",
-      "source_url": "https://antigravitylocalmodels.com/"
+      "source_url": "https://antigravitylocalmodels.com/",
+      "release_gate": "physical_windows_8gb"
     },
     {
       "id": "macos-ollama-gemma4-e2b",
@@ -244,7 +246,8 @@
       "verified": false,
       "release": false,
       "verification_status": "candidate_native_macos_e2e",
-      "source_url": "https://antigravitylocalmodels.com/"
+      "source_url": "https://antigravitylocalmodels.com/",
+      "release_gate": "native_e2e_and_real_gemma4_e2b"
     },
     {
       "id": "linux-ollama-gemma4-e2b",
@@ -265,7 +268,8 @@
       "verified": false,
       "release": false,
       "verification_status": "candidate_native_linux_e2e",
-      "source_url": "https://antigravitylocalmodels.com/"
+      "source_url": "https://antigravitylocalmodels.com/",
+      "release_gate": "native_e2e_and_real_gemma4_e2b"
     },
     {
       "id": "macos-litert-gemma4-26b",
@@ -291,7 +295,8 @@
       "verified": false,
       "release": false,
       "verification_status": "candidate_requires_24gb_apple_silicon",
-      "source_url": "https://www.antigravity.google/docs/sdk/local-models/"
+      "source_url": "https://www.antigravity.google/docs/sdk/local-models/",
+      "release_gate": "native_e2e_and_physical_24gb_apple_silicon"
     },
     {
       "id": "linux-litert-gemma4-26b",
@@ -317,7 +322,8 @@
       "verified": false,
       "release": false,
       "verification_status": "candidate_requires_24gb_nvidia_linux",
-      "source_url": "https://www.antigravity.google/docs/sdk/local-models/"
+      "source_url": "https://www.antigravity.google/docs/sdk/local-models/",
+      "release_gate": "native_e2e_and_physical_nvidia_24gb"
     }
   ]
 }
