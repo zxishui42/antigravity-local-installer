@@ -10,8 +10,16 @@ Assert-True ($profiles.Count -gt 0) 'No installer profiles exist.'
 $ids=@{}
 $folders=@{}
 foreach($p in $profiles){
-    foreach($field in @('id','install_folder','title','os','route','model','model_label','registry_manifest_url')){
+    foreach($field in @('id','install_folder','title','os','route','model','model_label')){
         Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.$field)) ("Profile "+[string]$p.id+" is missing "+$field)
+    }
+    if([string]$p.route -eq 'Ollama'){
+        Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.registry_manifest_url)) ("Ollama profile is missing registry_manifest_url: "+[string]$p.id)
+    } elseif([string]$p.route -eq 'LiteRT'){
+        Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.litert_hf_repo)) ("LiteRT profile is missing litert_hf_repo: "+[string]$p.id)
+        Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.litert_source_file)) ("LiteRT profile is missing litert_source_file: "+[string]$p.id)
+    } else {
+        throw ("Unsupported profile route: "+[string]$p.route)
     }
     Assert-True (-not $ids.ContainsKey([string]$p.id)) ("Duplicate profile id: "+[string]$p.id)
     Assert-True (-not $folders.ContainsKey([string]$p.install_folder)) ("Duplicate install folder: "+[string]$p.install_folder)
