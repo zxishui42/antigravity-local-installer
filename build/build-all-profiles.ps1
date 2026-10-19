@@ -16,6 +16,10 @@ foreach($profile in $profiles){
     Write-Host ("Building verified installer profile: "+[string]$profile.id)
     $json=& (Join-Path $PSScriptRoot 'build-profile.ps1') -ProfileId ([string]$profile.id)
     $result=$json | ConvertFrom-Json
+    $exe=Join-Path $repoRoot ('dist\'+([string]$result.installer_file).Replace('/','\'))
+    if(-not(Test-Path $exe)){throw ('Built profile installer is missing: '+[string]$profile.id)}
+    $self=Start-Process -FilePath $exe -ArgumentList '--self-test' -Wait -PassThru
+    if($self.ExitCode -ne 0){throw ('Profile installer self-test failed: '+[string]$profile.id+' exit '+[string]$self.ExitCode)}
     $items += $result
 }
 
