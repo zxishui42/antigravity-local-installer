@@ -63,9 +63,17 @@ function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphi
         profile_id=$null
         installer_file=$null
         final_check='none'
+        required_ram_gb=$null
+        required_vram_gb=$null
+        release_gate=$null
     }
     if($null -ne $resolved){
-        if($null -ne $resolved.profile){$row.profile_id=[string]$resolved.profile.id}
+        if($null -ne $resolved.profile){
+            $row.profile_id=[string]$resolved.profile.id
+            if($null -ne $resolved.profile.min_ram_gb){$row.required_ram_gb=[double]$resolved.profile.min_ram_gb}
+            if($null -ne $resolved.profile.min_vram_gb){$row.required_vram_gb=[double]$resolved.profile.min_vram_gb}
+            if(-not[string]::IsNullOrWhiteSpace([string]$resolved.profile.release_gate)){$row.release_gate=[string]$resolved.profile.release_gate}
+        }
         $row.final_check=[string]$resolved.rule.final_check
         $ruleStatus=[string]$resolved.rule.status
         if($ruleStatus -eq 'installer_available'){
