@@ -20,14 +20,15 @@ Remove-Item $pkg -Recurse -Force -ErrorAction SilentlyContinue
 Copy-Item $prepared $pkg -Recurse -Force
 
 $packPath=Join-Path $pkg '_internal\pack.json'
-$pack=Get-Content $packPath -Raw|ConvertFrom-Json
+$config=Get-Content $packPath -Raw|ConvertFrom-Json
+$pack=@($config.profiles)[0]
 $pack.model='qwen3:0.6b'
 $pack.model_label='Qwen3 0.6B CI'
 $pack.registry_manifest_url='https://registry.ollama.ai/v2/library/qwen3/manifests/0.6b'
 $pack.fallback_required_gb=4.0
 $pack.app_overhead_gb=1.5
-$pack.download_stall_seconds=180
-$pack|ConvertTo-Json|Set-Content $packPath -Encoding UTF8
+$config.shared.download_stall_seconds=180
+$config|ConvertTo-Json -Depth 8|Set-Content $packPath -Encoding UTF8
 
 $installRoot='D:\AntigravityLocal\gemma4-e2b'
 Remove-Item 'D:\AntigravityLocal' -Recurse -Force -ErrorAction SilentlyContinue
