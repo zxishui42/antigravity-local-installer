@@ -39,6 +39,7 @@ $err=Join-Path $env:RUNNER_TEMP 'warning-err.txt'
 Remove-Item $out,$err -Force -ErrorAction SilentlyContinue
 $p=Start-Process powershell.exe -ArgumentList @('-NoProfile','-Command',"[Console]::Error.WriteLine('WARNING: harmless');Write-Output 'OK';exit 0") -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
 Assert-True ($p.WaitForExit(30000)) 'Warning test process timed out.'
+$p.WaitForExit()
 $p.Refresh()
 $code=$p.ExitCode
 Assert-True ($null -ne $code -and [int]$code -eq 0) "Warning test exit code was $code"
@@ -51,6 +52,7 @@ $err2=Join-Path $env:RUNNER_TEMP 'agent-err.txt'
 Remove-Item $out2,$err2 -Force -ErrorAction SilentlyContinue
 $p2=Start-Process powershell.exe -ArgumentList @('-NoProfile','-Command',"Write-Output 'OK';exit 0") -PassThru -RedirectStandardOutput $out2 -RedirectStandardError $err2
 Assert-True ($p2.WaitForExit(30000)) 'Agent simulation timed out.'
+$p2.WaitForExit()
 $p2.Refresh()
 $exitCode=$p2.ExitCode
 $o=if(Test-Path $out2){Get-Content $out2 -Raw}else{''}
@@ -59,6 +61,7 @@ Assert-True (-not [string]::IsNullOrWhiteSpace($o)) 'Agent OK output was read as
 
 Write-Host '6) Inspect production regression guards'
 $worker=Get-Content '_internal/worker.ps1' -Raw
+Assert-True ($worker.Contains('$p.WaitForExit()')) 'Production worker is missing final parameterless WaitForExit().'
 Assert-True ($worker.Contains('$p.Refresh()')) 'Production worker is missing Process.Refresh().'
 Assert-True ($worker.Contains('$exitCode=$p.ExitCode')) 'Production worker does not snapshot ExitCode.'
 Assert-True ($worker.Contains('if($null -eq $exitCode -or [int]$exitCode -ne 0)')) 'Production success check is not null-safe.'
