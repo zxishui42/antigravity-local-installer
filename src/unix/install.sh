@@ -82,7 +82,7 @@ install_uv(){
   mkdir -p "$UV_ROOT" "$TMP/uv-extract"
   tar -xzf "$archive" -C "$TMP/uv-extract"
   local found
-  found="$(find "$TMP/uv-extract" -type f -name uv -perm -u+x | head -n 1)"
+  found="$(find "$TMP/uv-extract" -type f -name uv | head -n 1)"
   [ -n "$found" ] || fail "uv executable was not found in the runtime archive."
   cp "$found" "$UV"
   chmod +x "$UV"
@@ -101,14 +101,14 @@ install_python(){
   elif [ "$PLATFORM" = "linux" ]; then
     packages+=("zstandard")
   fi
-  "$UV" pip install --python "$VENV/bin/python" --disable-pip-version-check "${packages[@]}" >/dev/null
+  "$UV" pip install --python "$VENV/bin/python" "${packages[@]}" >/dev/null
 }
 
 install_ollama(){
   OLLAMA_HOME="$RUNTIME/ollama"
   OLLAMA_BIN=""
   if [ -d "$OLLAMA_HOME" ]; then
-    OLLAMA_BIN="$(find "$OLLAMA_HOME" -type f -name ollama -perm -u+x | head -n 1 || true)"
+    OLLAMA_BIN="$(find "$OLLAMA_HOME" -type f -name ollama | head -n 1 || true)"
   fi
   if [ -n "$OLLAMA_BIN" ]; then return; fi
   log "Downloading private Ollama runtime..."
