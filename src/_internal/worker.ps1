@@ -242,6 +242,72 @@ exit `$nativeCode
     if($null -eq $exitCode -or $exitCode -ne 0){throw 'Antigravity could not connect to the model.'}
     if([string]::IsNullOrWhiteSpace($o)){throw 'Antigravity returned no output.'}
 }
+function Download-LiteRTModel {
+    New-Item -ItemType Directory -Force -Path $ModelRoot | Out-Null
+    if(Test-Path $LiteRTModelFile){
+        $existingHash=(Get-FileHash -LiteralPath $LiteRTModelFile -Algorithm SHA256).Hash.ToLowerInvariant()
+        if($existingHash -eq ([string]$Pack.model_sha256).ToLowerInvariant()){
+            Status 'Model found' 'The LiteRT model is already present in this private setup.' 'No download is needed.' 60
+            return
+        }
+        Remove-Item $LiteRTModelFile -Force -ErrorAction SilentlyContinue
+    }
+    $tmp=$LiteRTModelFile+'.part'
+    Remove-Item $tmp -Force -ErrorAction SilentlyContinue
+    Status 'Downloading the model' 'Downloading the LiteRT model to the drive you selected.' 'No action is needed.' 45
+    $job=$null
+    try {
+        $job=Start-BitsTransfer -Source ([string]$Pack.litert_download_url) -Destination $tmp -Asynchronous -DisplayName ('Antigravity Local '+[string]$Pack.id)
+        while($true){
+            $job=Get-BitsTransfer -Id $job.Id -ErrorAction Stop
+            if($job.JobState -eq 'Transferred'){Complete-BitsTransfer -BitsJob $job;break}
+            if($job.JobState -eq 'Error' -or $job.JobState -eq 'Cancelled'){throw ('LiteRT model download failed: '+[string]$job.ErrorDescription)}
+            $total=[long]$Pack.model_size_bytes
+            $done=[long]$job.BytesTransferred
+            $progressValue=45
+            if($total -gt 0L){$ratio=[Math]::Min(1.0,[double]$done/[double]$total);$progressValue=[int](45+($ratio*15))}
+            Status 'Downloading the model' ("Downloaded about "+(Format-Bytes $done)+" so far.") ("Saving to "+$DriveRoot) $progressValue
+            Start-Sleep 2
+        }
+    } catch {
+        if($job){try{Remove-BitsTransfer -BitsJob $job -Confirm:$false -ErrorAction SilentlyContinue}catch{}}
+        Remove-Item $tmp -Force -ErrorAction SilentlyContinue
+        throw
+    }
+    if(-not(Test-Path $tmp)){throw 'The LiteRT model download did not produce a file.'}
+    Move-Item -Force $tmp $LiteRTModelFile
+    $hash=(Get-FileHash -LiteralPath $LiteRTModelFile -Algorithm SHA256).Hash.ToLowerInvariant()
+    if($hash -ne ([string]$Pack.model_sha256).ToLowerInvariant()){
+        Remove-Item $LiteRTModelFile -Force -ErrorAction SilentlyContinue
+        throw 'The LiteRT model file failed its integrity check.'
+    }
+}
+function Test-LiteRTAntigravity {
+    Status 'Testing Antigravity' 'Starting the LiteRT model and checking that it answers.' 'The first start can take longer.' 92
+    $agentPath=Join-Path $InstallRoot 'litert_agent.py'
+    $psi=New-Object System.Diagnostics.ProcessStartInfo
+    $psi.FileName=$PythonExe
+    $psi.Arguments='"'+$agentPath+'"'
+    $psi.WorkingDirectory=$InstallRoot
+    $psi.UseShellExecute=$false
+    $psi.CreateNoWindow=$true
+    $psi.RedirectStandardOutput=$true
+    $psi.RedirectStandardError=$true
+    $psi.EnvironmentVariables['ANTIGRAVITY_LOCAL_PROMPT']='Reply with only: OK'
+    $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_MODEL_PATH']=$LiteRTModelFile
+    $psi.EnvironmentVariables['ANTIGRAVITY_LITERT_BACKEND']='gpu'
+    $p=New-Object System.Diagnostics.Process
+    $p.StartInfo=$psi
+    [void]$p.Start()
+    if(-not $p.WaitForExit(900000)){try{$p.Kill()}catch{};throw 'LiteRT installation test timed out.'}
+    $o=$p.StandardOutput.ReadToEnd()
+    $e=$p.StandardError.ReadToEnd()
+    Log "LiteRT Antigravity output: $o"
+    if($e){Log "LiteRT Antigravity stderr: $e"}
+    Log "LiteRT Antigravity child exit code: $($p.ExitCode)"
+    if($p.ExitCode -ne 0){throw 'Antigravity could not run the LiteRT model.'}
+    if([string]::IsNullOrWhiteSpace($o)){throw 'The LiteRT model returned no output.'}
+}
 function Write-UserLauncher([string]$OllamaExe){
     $appSource=Join-Path $ScriptRoot 'AntigravityLocal.exe'
     if(-not(Test-Path $appSource)){throw 'The installed app executable is missing from this package.'}
