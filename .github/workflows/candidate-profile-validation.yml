@@ -7,12 +7,6 @@ on:
         description: 'Candidate profile id'
         required: false
         default: 'all'
-  push:
-    branches: [main]
-    paths:
-      - 'src/_internal/pack.json'
-      - 'tests/profile-model-validation.ps1'
-      - '.github/workflows/candidate-profile-validation.yml'
 
 jobs:
   validate-candidate:
