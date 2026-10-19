@@ -23,9 +23,11 @@ jobs:
       matrix:
         include:
           - os: macos-latest
+            platform: macos
             profile: macos-ollama-gemma4-e2b
             test_model: qwen3:0.6b
           - os: ubuntu-latest
+            platform: linux
             profile: linux-ollama-gemma4-e2b
             test_model: qwen3:0.6b
     runs-on: ${{ matrix.os }}
@@ -37,3 +39,29 @@ jobs:
         env:
           ANTIGRAVITY_E2E_MODEL: ${{ matrix.test_model }}
         run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
+
+      - name: Build native candidate package
+        shell: bash
+        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native
+
+      - name: Verify Linux self-extracting package
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          test -s "dist/native/${{ matrix.profile }}.run"
+          grep -a -q '^__ANTIGRAVITY_PAYLOAD_BELOW__
+ "dist/native/${{ matrix.profile }}.run"
+
+      - name: Verify macOS package
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          test -s "dist/native/${{ matrix.profile }}.pkg"
+          pkgutil --payload-files "dist/native/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
+
+      - name: Upload native candidate package
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.profile }}
+          path: dist/native/${{ matrix.profile }}.*
+          if-no-files-found: error
