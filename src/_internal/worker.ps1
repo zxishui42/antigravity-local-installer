@@ -5,11 +5,38 @@ param(
 )
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
-$Pack=Get-Content (Join-Path $ScriptRoot 'pack.json') -Raw | ConvertFrom-Json
+$Config=Get-Content (Join-Path $ScriptRoot 'pack.json') -Raw | ConvertFrom-Json
+$DetectedRamGb=[Math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory/1GB,0)
+$DetectedGpuNames=@(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | ForEach-Object { [string]$_.Name })
+
+function Test-ProfileMatch($Profile){
+    if($null -ne $Profile.verified -and -not [bool]$Profile.verified){return $false}
+    if($null -ne $Profile.min_ram_gb -and $DetectedRamGb -lt [double]$Profile.min_ram_gb){return $false}
+    $vendor=[string]$Profile.gpu_vendor
+    if($vendor -and $vendor.ToLowerInvariant() -ne 'any'){
+        $pattern=switch($vendor.ToLowerInvariant()){
+            'amd' {'AMD|Radeon'}
+            'nvidia' {'NVIDIA|GeForce|RTX|GTX'}
+            'intel' {'Intel|Arc'}
+            default {[Regex]::Escape($vendor)}
+        }
+        if(-not(@($DetectedGpuNames | Where-Object { $_ -match $pattern }).Count)){return $false}
+    }
+    return $true
+}
+
+$Profile=@($Config.profiles | Where-Object { Test-ProfileMatch $_ } | Sort-Object @{Expression={[int]$_.priority};Descending=$true} | Select-Object -First 1)[0]
+if($null -eq $Profile){throw 'No verified install profile matches this PC.'}
+
+$merged=[ordered]@{}
+foreach($p in $Config.shared.PSObject.Properties){$merged[$p.Name]=$p.Value}
+foreach($p in $Profile.PSObject.Properties){$merged[$p.Name]=$p.Value}
+$Pack=[pscustomobject]$merged
+
 $StatusFile=Join-Path $RunRoot 'status.json'
 $LogFile=Join-Path $RunRoot 'install.log'
 $DriveRoot=$TargetDrive.TrimEnd('\') + '\'
-$InstallRoot=Join-Path $DriveRoot 'AntigravityLocal\gemma4-e2b'
+$InstallRoot=Join-Path $DriveRoot ('AntigravityLocal\'+[string]$Pack.install_folder)
 $ModelRoot=Join-Path $InstallRoot 'models'
 $RuntimeRoot=Join-Path $InstallRoot 'runtime'
 $PythonRoot=Join-Path $RuntimeRoot 'python'
@@ -183,7 +210,9 @@ function Write-UserLauncher([string]$OllamaExe){
 }
 
 function Register-Uninstaller {
-    $uninstallDir=Join-Path $env:LOCALAPPDATA 'AntigravityLocal\\Uninstallers\\gemma4-e2b';New-Item -ItemType Directory -Force -Path $uninstallDir|Out-Null
+    $uninstallDir=Join-Path $env:LOCALAPPDATA ('AntigravityLocal\Uninstallers\'+[string]$Pack.install_folder);New-Item -ItemType Directory -Force -Path $uninstallDir|Out-Null
+    $uninstallKeyName='AntigravityLocal-'+[string]$Pack.install_folder
+    $uninstallKey='HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\'+$uninstallKeyName
 $un=@"
 param()
 Add-Type -AssemblyName System.Windows.Forms
@@ -193,13 +222,13 @@ Add-Type -AssemblyName System.Windows.Forms
 \`$pidFile=Join-Path \`$root 'ollama-server.pid';if(Test-Path \`$pidFile){try{\`$pidValue=[int](Get-Content \`$pidFile);Stop-Process -Id \`$pidValue -Force -ErrorAction SilentlyContinue}catch{}}
 Remove-Item (Join-Path \`$desktop 'Antigravity Local.lnk') -Force -ErrorAction SilentlyContinue
 Remove-Item \`$root -Recurse -Force -ErrorAction SilentlyContinue
-Remove-Item 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\AntigravityLocal-gemma4-e2b' -Recurse -Force -ErrorAction SilentlyContinue
+Remove-Item '$($uninstallKey.Replace("'","''"))' -Recurse -Force -ErrorAction SilentlyContinue
 [System.Windows.Forms.MessageBox]::Show('Antigravity Local was removed.','Uninstall Antigravity Local')|Out-Null
 "@
     $unPath=Join-Path $uninstallDir 'uninstall.ps1';Set-Content $unPath $un -Encoding UTF8
-    $key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\AntigravityLocal-gemma4-e2b'
+    $key=$uninstallKey
     New-Item -Path $key -Force | Out-Null
-    New-ItemProperty -Path $key -Name 'DisplayName' -Value 'Antigravity Local - Gemma 4 E2B' -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'DisplayName' -Value ('Antigravity Local - '+[string]$Pack.model_label) -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $key -Name 'Publisher' -Value 'Antigravity Local Models' -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $key -Name 'DisplayVersion' -Value ([string]$Pack.version) -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $key -Name 'InstallLocation' -Value $InstallRoot -PropertyType String -Force | Out-Null
@@ -211,7 +240,7 @@ try {
     Status 'Checking this PC' 'Checking Windows, memory, storage, and network.' 'No changes have been made yet.' 8
     if(-not[Environment]::Is64BitOperatingSystem){Fail 'This package needs 64-bit Windows.' 'Choose a compatible package.'}
     $os=Get-CimInstance Win32_OperatingSystem;if([int]$os.BuildNumber -lt [int]$Pack.min_windows_build){Fail 'This Windows version is too old for the current local runtime.' "Windows build $($Pack.min_windows_build) or newer is required."}
-    $ram=[Math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory/1GB,0);if($ram -lt [int]$Pack.min_ram_gb){Fail 'This PC does not have enough memory.' "Detected: $ram GB. Required: at least $($Pack.min_ram_gb) GB."}
+    $ram=$DetectedRamGb;if($ram -lt [int]$Pack.min_ram_gb){Fail 'This PC does not have enough memory.' "Detected: $ram GB. Required: at least $($Pack.min_ram_gb) GB."}
     $driveName=$TargetDrive.TrimEnd(':');$drive=Get-PSDrive -Name $driveName -ErrorAction Stop
     $manifestBytes=0L;try{$manifestBytes=Get-ManifestBytes}catch{$manifestBytes=[long](([double]$Pack.fallback_required_gb-[double]$Pack.app_overhead_gb)*1GB)}
     $totalTargetBytes=[long]($manifestBytes+([double]$Pack.app_overhead_gb*1GB));$existingBytes=[long](FolderBytes $InstallRoot);$additionalBytes=[long]($totalTargetBytes-$existingBytes);if($additionalBytes -lt 512MB){$additionalBytes=512MB}
@@ -225,7 +254,7 @@ try {
     Set-PrivateEndpoint (Choose-PrivatePort);Start-PrivateOllama $ollama
     if(-not(PrivateModelExists)){Pull-Model $ollama $manifestBytes}else{Status 'Model found' 'The model is already present in this private setup.' 'No download is needed.' 60}
     Write-AgentFile;$vram=Test-Model;Test-Antigravity;Write-UserLauncher $ollama;Register-Uninstaller
-    $state=[ordered]@{pack=$Pack.id;model=$Pack.model;installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$PrivatePort;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
+    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;model=$Pack.model;model_label=$Pack.model_label;installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$PrivatePort;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
     Stop-PrivateOllama
     $accel=if($vram -gt 0){'GPU acceleration was detected.'}else{'The setup works. GPU acceleration was not detected in this test, so it may run more slowly.'}
     Status 'Installation complete' 'The local setup is ready.' "$accel Everything for this package is stored on $TargetDrive. A desktop shortcut was added." 100 'success'
