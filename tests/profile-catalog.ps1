@@ -25,6 +25,8 @@ foreach($p in $profiles){
     Assert-True (-not $folders.ContainsKey([string]$p.install_folder)) ("Duplicate install folder: "+[string]$p.install_folder)
     if([bool]$p.verified){
         Assert-True ($null -ne $p.min_ram_gb -and [double]$p.min_ram_gb -gt 0) ("Verified profile has no RAM floor: "+[string]$p.id)
+        Assert-True ($null -ne $p.validation_evidence) ("Verified profile has no validation evidence: "+[string]$p.id)
+        Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.verification_status)) ("Verified profile has no verification status: "+[string]$p.id)
     }
     $ids[[string]$p.id]=$true
     $folders[[string]$p.install_folder]=$true
@@ -33,6 +35,8 @@ foreach($p in $profiles){
 $routing=Get-Content (Join-Path $repoRoot 'catalog\package-routing.json') -Raw | ConvertFrom-Json
 foreach($rule in @($routing.rules)){
     Assert-True ($ids.ContainsKey([string]$rule.profile_id)) ("Routing rule points to missing profile: "+[string]$rule.profile_id)
+    $target=@($profiles | Where-Object { [string]$_.id -eq [string]$rule.profile_id } | Select-Object -First 1)[0]
+    Assert-True ($null -ne $target -and [bool]$target.verified) ("Routing rule points to an unverified profile: "+[string]$rule.profile_id)
 }
 
 & (Join-Path $repoRoot 'build\generate-site-routing.ps1')
