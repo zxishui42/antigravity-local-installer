@@ -19,6 +19,7 @@ import pathlib, re, sys
 p=pathlib.Path(sys.argv[1])
 s=p.read_text()
 s=re.sub(r"^MODEL=.*$", "MODEL='"+sys.argv[2].replace("'","'\\''")+"'", s, flags=re.M)
+s=re.sub(r"^MIN_RAM_GB=.*$", "MIN_RAM_GB='1'", s, flags=re.M)
 p.write_text(s)
 PY
 fi
