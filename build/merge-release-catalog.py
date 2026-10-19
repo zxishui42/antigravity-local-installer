@@ -18,7 +18,9 @@ def main():
             ids.add(pid);files.add(fn);items.append(item)
     items.sort(key=lambda x:x["id"])
     out={"schema_version":1,"verified_profile_count":len(items),"installers":items}
-    Path(args.output).write_text(json.dumps(out,indent=2)+"\n")
+    target=Path(args.output)
+    target.parent.mkdir(parents=True,exist_ok=True)
+    target.write_text(json.dumps(out,indent=2)+"\n")
     print(f"Merged {len(items)} release installer(s) -> {args.output}")
 
 if __name__=="__main__":
