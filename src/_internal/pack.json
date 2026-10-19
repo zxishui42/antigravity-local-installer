@@ -19,13 +19,20 @@
       "route": "Ollama",
       "model": "gemma4:e2b",
       "model_label": "Gemma 4 E2B",
-      "min_ram_gb": 8,
+      "min_ram_gb": 16,
       "gpu_vendor": "any",
       "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e2b",
       "app_overhead_gb": 2.5,
       "fallback_required_gb": 8,
       "priority": 100,
-      "verified": true
+      "verified": true,
+      "verification_status": "real_pc_passed_16gb_amd",
+      "validation_evidence": {
+        "environment": "Real Windows PC",
+        "ram_gb": 16,
+        "gpu": "AMD Radeon RX 5700 XT 8 GB",
+        "antigravity_output": "OK"
+      }
     },
     {
       "id": "windows-ollama-gemma4-e4b-qat",
@@ -35,12 +42,12 @@
       "route": "Ollama",
       "model": "gemma4:e4b-it-qat",
       "model_label": "Gemma 4 E4B QAT",
-      "gpu_vendor": "any",
+      "gpu_vendor": "cpu-only",
       "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e4b-it-qat",
       "app_overhead_gb": 2.5,
       "fallback_required_gb": 8.6,
       "priority": 200,
-      "verified": false,
+      "verified": true,
       "verification_status": "integration_passed_16gb_cpu",
       "source_url": "https://ollama.com/library/gemma4/tags",
       "validation_evidence": {
@@ -51,7 +58,8 @@
         "model_bytes": 6146525075,
         "vram_bytes": 0,
         "validated_run_id": 39275301652
-      }
+      },
+      "min_ram_gb": 16
     },
     {
       "id": "windows-ollama-gemma4-12b-qat",
@@ -67,9 +75,9 @@
       "fallback_required_gb": 9.7,
       "priority": 300,
       "verified": true,
-      "verification_status": "integration_passed_16gb_cpu",
+      "verification_status": "integration_passed_16gb_cpu_released_for_32gb_plus",
       "source_url": "https://ollama.com/library/gemma4/tags",
-      "min_ram_gb": 16,
+      "min_ram_gb": 32,
       "validation_evidence": {
         "environment": "GitHub Windows runner",
         "ram_gb": 16,
