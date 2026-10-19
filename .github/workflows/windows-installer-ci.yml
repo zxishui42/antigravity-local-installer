@@ -5,6 +5,10 @@ on:
     branches: [main]
   workflow_dispatch:
 
+concurrency:
+  group: windows-installer-ci-main
+  cancel-in-progress: true
+
 jobs:
   windows-ci:
     runs-on: windows-latest
