@@ -75,6 +75,7 @@ $Pack=[pscustomobject]$merged
 $DriveRoot=$TargetDrive.TrimEnd('\') + '\'
 $InstallRoot=Join-Path $DriveRoot ('AntigravityLocal\'+[string]$Pack.install_folder)
 $ModelRoot=Join-Path $InstallRoot 'models'
+$LiteRTModelFile=Join-Path $ModelRoot 'model.litertlm'
 $RuntimeRoot=Join-Path $InstallRoot 'runtime'
 $PythonRoot=Join-Path $RuntimeRoot 'python'
 $PythonExe=Join-Path $PythonRoot 'python.exe'
@@ -181,17 +182,27 @@ function Ensure-PortablePython {
 function Install-Antigravity {
     Status 'Preparing Antigravity' 'Installing Antigravity in the private runtime.' 'No system Python settings are changed.' 38
     $package="google-antigravity==$($Pack.antigravity_version)"
-    $code=Invoke-NativeLogged $PythonExe @('-m','pip','install','--disable-pip-version-check','--no-input','--no-warn-script-location',$package)
-    if($code -ne 0){throw 'The Antigravity SDK could not be installed.'}
+    $args=@('-m','pip','install','--disable-pip-version-check','--no-input','--no-warn-script-location',$package)
+    if([string]$Pack.route -eq 'LiteRT'){$args += 'litert-lm'}
+    $code=Invoke-NativeLogged $PythonExe $args
+    if($code -ne 0){throw 'The Antigravity runtime could not be installed.'}
     $verifyFile=Join-Path $RunRoot 'verify_sdk.py'
-    @'
-from google.antigravity import Agent, LocalOpenAIAgentConfig
-print("antigravity import ok")
+    if([string]$Pack.route -eq 'LiteRT'){
+@'
+from google.antigravity import Agent, LiteRTAgentConfig
+print("antigravity litert import ok")
 '@ | Set-Content $verifyFile -Encoding UTF8
+    } else {
+@'
+from google.antigravity import Agent, LocalOpenAIAgentConfig
+print("antigravity ollama import ok")
+'@ | Set-Content $verifyFile -Encoding UTF8
+    }
     $verify=Invoke-NativeLogged $PythonExe @($verifyFile)
-    if($verify -ne 0){throw 'The Antigravity SDK was installed but could not be imported.'}
+    if($verify -ne 0){throw 'The Antigravity runtime was installed but could not be imported.'}
 }
-function Write-AgentFile { $template=Get-Content (Join-Path $ScriptRoot 'local_agent.py') -Raw;$content=$template.Replace('__MODEL__',[string]$Pack.model).Replace('__BASE_URL__',"http://$OllamaHost/v1");Set-Content (Join-Path $InstallRoot 'local_agent.py') $content -Encoding UTF8 }
+function Write-OllamaAgentFile { $template=Get-Content (Join-Path $ScriptRoot 'local_agent.py') -Raw;$content=$template.Replace('__MODEL__',[string]$Pack.model).Replace('__BASE_URL__',"http://$OllamaHost/v1");Set-Content (Join-Path $InstallRoot 'local_agent.py') $content -Encoding UTF8 }
+function Write-LiteRTAgentFile { Copy-Item -LiteralPath (Join-Path $ScriptRoot 'litert_agent.py') -Destination (Join-Path $InstallRoot 'litert_agent.py') -Force }
 function Test-Model {Status 'Testing the setup' 'Starting the model and checking that it answers.' 'No action is needed.' 84;$body=@{model=$Pack.model;prompt='Reply with only: OK';stream=$false;keep_alive='5m'}|ConvertTo-Json;$result=Invoke-RestMethod -Uri "$ApiBase/api/generate" -Method Post -Body $body -ContentType 'application/json' -TimeoutSec 240;if(-not$result.response){throw 'The model did not return a response.'};$ps=Invoke-RestMethod -Uri "$ApiBase/api/ps" -TimeoutSec 10;$m=$ps.models|Where-Object{$_.name -like ($Pack.model+'*') -or $_.model -like ($Pack.model+'*')}|Select-Object -First 1;$v=0L;if($m){try{$v=[long]$m.size_vram}catch{}};return $v}
 function Test-Antigravity {
     Status 'Testing Antigravity' 'Checking the connection to the local model.' 'No action is needed.' 92
