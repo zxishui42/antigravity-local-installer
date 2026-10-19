@@ -114,6 +114,27 @@
       "verified": false,
       "verification_status": "candidate",
       "source_url": "https://ollama.com/library/gemma4/tags"
+    },
+    {
+      "id": "windows-litert-gemma4-26b",
+      "install_folder": "litert-gemma4-26b",
+      "title": "Antigravity Local — Gemma 4 26B LiteRT",
+      "os": "Windows 10/11 x64",
+      "route": "LiteRT",
+      "model": "gemma4-26b",
+      "model_label": "Gemma 4 26B A4B LiteRT",
+      "gpu_vendor": "nvidia",
+      "min_vram_gb": 24,
+      "litert_hf_repo": "litert-community/gemma-4-26B-A4B-it-litert-lm",
+      "litert_source_file": "gemma-4-26B-A4B-it-gpu.litertlm",
+      "litert_registered_name": "gemma4-26b",
+      "download_size_gb": 16.8,
+      "app_overhead_gb": 3,
+      "fallback_required_gb": 20,
+      "priority": 600,
+      "verified": false,
+      "verification_status": "candidate_requires_physical_nvidia_24gb",
+      "source_url": "https://www.antigravity.google/docs/sdk/local-models/"
     }
   ]
 }
