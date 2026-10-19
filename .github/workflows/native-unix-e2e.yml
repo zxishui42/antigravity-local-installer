@@ -1,0 +1,37 @@
+name: Native macOS and Linux installer E2E
+
+on:
+  workflow_dispatch:
+  push:
+    branches:
+      - production-line-cross-platform
+    paths:
+      - 'src/unix/**'
+      - 'src/_internal/pack.json'
+      - 'src/_internal/local_agent.py'
+      - 'src/_internal/litert_agent.py'
+      - 'build/build-unix-profile.py'
+      - 'tests/unix-ollama-e2e.sh'
+      - '.github/workflows/native-unix-e2e.yml'
+
+jobs:
+  ollama-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            profile: macos-ollama-gemma4-e2b
+            test_model: qwen3:0.6b
+          - os: ubuntu-latest
+            profile: linux-ollama-gemma4-e2b
+            test_model: qwen3:0.6b
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 35
+    steps:
+      - uses: actions/checkout@v4
+      - name: Run native production engine
+        shell: bash
+        env:
+          ANTIGRAVITY_E2E_MODEL: ${{ matrix.test_model }}
+        run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
