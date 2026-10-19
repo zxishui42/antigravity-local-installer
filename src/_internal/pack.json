@@ -41,8 +41,17 @@
       "fallback_required_gb": 8.6,
       "priority": 200,
       "verified": false,
-      "verification_status": "candidate",
-      "source_url": "https://ollama.com/library/gemma4/tags"
+      "verification_status": "integration_passed_16gb_cpu",
+      "source_url": "https://ollama.com/library/gemma4/tags",
+      "validation_evidence": {
+        "environment": "GitHub Windows runner",
+        "ram_gb": 16,
+        "gpu": "Microsoft Hyper-V Video",
+        "antigravity_output": "OK",
+        "model_bytes": 6146525075,
+        "vram_bytes": 0,
+        "validated_run_id": 39275301652
+      }
     },
     {
       "id": "windows-ollama-gemma4-12b-qat",
