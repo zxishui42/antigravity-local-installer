@@ -22,14 +22,16 @@ foreach($p in $profiles){
         throw ("Unsupported profile route: "+[string]$p.route)
     }
     Assert-True (-not $ids.ContainsKey([string]$p.id)) ("Duplicate profile id: "+[string]$p.id)
-    Assert-True (-not $folders.ContainsKey([string]$p.install_folder)) ("Duplicate install folder: "+[string]$p.install_folder)
+    $platformKey=if([string]::IsNullOrWhiteSpace([string]$p.platform)){'windows'}else{[string]$p.platform}
+    $folderKey=$platformKey+'|'+[string]$p.install_folder
+    Assert-True (-not $folders.ContainsKey($folderKey)) ("Duplicate install folder on "+$platformKey+": "+[string]$p.install_folder)
     if([bool]$p.verified){
         Assert-True ($null -ne $p.min_ram_gb -and [double]$p.min_ram_gb -gt 0) ("Verified profile has no RAM floor: "+[string]$p.id)
         Assert-True ($null -ne $p.validation_evidence) ("Verified profile has no validation evidence: "+[string]$p.id)
         Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.verification_status)) ("Verified profile has no verification status: "+[string]$p.id)
     }
     $ids[[string]$p.id]=$true
-    $folders[[string]$p.install_folder]=$true
+    $folders[$folderKey]=$true
 }
 
 $routing=Get-Content (Join-Path $repoRoot 'catalog\package-routing.json') -Raw | ConvertFrom-Json
