@@ -12,25 +12,22 @@ $DetectedRamGb=[Math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysica
 $DetectedGpuNames=@(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | ForEach-Object { [string]$_.Name })
 $DetectedNvidiaVramGb=$null
 try {
-    $nvsmi=(Get-Command nvidia-smi -ErrorAction SilentlyContinue).Source
+    $nvsmi=(Get-Command 'nvidia-smi' -ErrorAction SilentlyContinue).Source
     if(-not $nvsmi){
-        $candidate=Join-Path $env:WINDIR 'System32\nvidia-smi.exe'
-        if(Test-Path $candidate){$nvsmi=$candidate}
+        $nvsmi=Join-Path $env:WINDIR 'System32\nvidia-smi.exe'
+        if(-not(Test-Path $nvsmi)){$nvsmi=$null}
     }
     if($nvsmi){
-        $raw=& $nvsmi --query-gpu=memory.total --format=csv,noheader,nounits 2>$null
-        $values=@()
-        foreach($line in @($raw)){
-            $number=0.0
-            $text=([string]$line).Trim()
-            if([double]::TryParse($text,[ref]$number)){ $values += $number }
-        }
-        if($values.Count -gt 0){
-            $maxMb=($values | Measure-Object -Maximum).Maximum
-            $DetectedNvidiaVramGb=[Math]::Round(([double]$maxMb/1024),1)
+        $raw=(& $nvsmi '--query-gpu=memory.total' '--format=csv,noheader,nounits' 2>$null | Select-Object -First 1)
+        if($raw){
+            $mb=[double](([string]$raw).Trim())
+            $DetectedNvidiaVramGb=[Math]::Round(($mb/1024),1)
         }
     }
-} catch {}
+} catch {
+    $DetectedNvidiaVramGb=$null
+}
+
 function Test-ProfileMatch($Profile){
     if($null -ne $Profile.verified -and -not [bool]$Profile.verified){return $false}
     if($null -ne $Profile.min_ram_gb -and $DetectedRamGb -lt [double]$Profile.min_ram_gb){return $false}
