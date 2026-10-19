@@ -59,3 +59,16 @@ jobs:
         run: |
           python -m py_compile src/_internal/local_agent.py
           python -m py_compile src/_internal/litert_agent.py
+
+      - name: Check native shell scripts
+        shell: bash
+        run: |
+          bash -n src/unix/install.sh
+          bash -n tests/unix-ollama-e2e.sh
+          bash -n tests/unix-litert-e2e.sh
+
+      - name: Compile native package builders
+        shell: bash
+        run: |
+          python -m py_compile build/build-unix-profile.py
+          python -m py_compile build/build-native-package.py
