@@ -5,11 +5,32 @@ $hardware=Get-Content (Join-Path $repoRoot 'catalog\site-hardware-options.json')
 $routing=Get-Content (Join-Path $repoRoot 'catalog\package-routing.json') -Raw | ConvertFrom-Json
 $packages=Get-Content (Join-Path $repoRoot 'src\_internal\pack.json') -Raw | ConvertFrom-Json
 
-function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime){
+function Get-VramGb([string]$Hardware){
+    if([string]::IsNullOrWhiteSpace($Hardware)){ return $null }
+    $m=[regex]::Match($Hardware,'(?i)(?:\(|\s)(\d+)\s*GB\)?')
+    if($m.Success){ return [int]$m.Groups[1].Value }
+    return $null
+}
+
+function Match-Range($Value,$Match,[string]$MinName,[string]$MaxName){
+    $min=$Match.PSObject.Properties[$MinName]
+    $max=$Match.PSObject.Properties[$MaxName]
+    if($null -ne $min -and $null -ne $min.Value){
+        if($null -eq $Value -or [double]$Value -lt [double]$min.Value){ return $false }
+    }
+    if($null -ne $max -and $null -ne $max.Value){
+        if($null -eq $Value -or [double]$Value -gt [double]$max.Value){ return $false }
+    }
+    return $true
+}
+
+function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime,$VramGb,$MemoryGb){
     $rule=@($routing.rules | Where-Object {
         @($_.match.os) -contains $Os -and
         @($_.match.graphics) -contains $Graphics -and
-        @($_.match.runtime) -contains $Runtime
+        @($_.match.runtime) -contains $Runtime -and
+        (Match-Range $VramGb $_.match 'min_vram_gb' 'max_vram_gb') -and
+        (Match-Range $MemoryGb $_.match 'min_memory_gb' 'max_memory_gb')
     } | Sort-Object @{Expression={[int]$_.priority};Descending=$true} | Select-Object -First 1)[0]
     if($null -eq $rule){ return $null }
     $profile=@($packages.profiles | Where-Object { [string]$_.id -eq [string]$rule.profile_id } | Select-Object -First 1)[0]
@@ -18,11 +39,13 @@ function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime){
 }
 
 function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphics,[string]$Hardware,[object]$Memory,[string]$Runtime){
-    $resolved=Resolve-Profile $Os $Graphics $Runtime
+    $vram=Get-VramGb $Hardware
+    $resolved=Resolve-Profile $Os $Graphics $Runtime $vram $Memory
     $row=[ordered]@{
         os=$Os
         graphics=$Graphics
         hardware=$Hardware
+        vram_gb=$vram
         memory_gb=$Memory
         runtime=$Runtime
         status=[string]$routing.default_status
