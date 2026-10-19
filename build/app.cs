@@ -19,6 +19,7 @@ namespace AntigravityLocalApp
         public string model { get; set; }
         public string model_path { get; set; }
         public string litert_backend { get; set; }
+        public string litert_cache_dir { get; set; }
         public string ollama { get; set; }
         public int port { get; set; }
     }
@@ -34,6 +35,7 @@ namespace AntigravityLocalApp
         private readonly string route;
         private readonly string modelPath;
         private readonly string liteRTBackend;
+        private readonly string liteRTCacheDir;
         private readonly int preferredPort;
         private Process server;
         private int activePort;
@@ -55,6 +57,7 @@ namespace AntigravityLocalApp
             model = state.model;
             modelPath = state.model_path;
             liteRTBackend = String.IsNullOrWhiteSpace(state.litert_backend) ? "gpu" : state.litert_backend;
+            liteRTCacheDir = String.IsNullOrWhiteSpace(state.litert_cache_dir) ? Path.Combine(root, "litert-cache") : state.litert_cache_dir;
             preferredPort = state.port > 0 ? state.port : 11435;
             agent = Path.Combine(root, String.Equals(route, "LiteRT", StringComparison.OrdinalIgnoreCase) ? "litert_agent.py" : "local_agent.py");
 
@@ -92,6 +95,7 @@ namespace AntigravityLocalApp
             {
                 psi.EnvironmentVariables["ANTIGRAVITY_LITERT_MODEL_PATH"] = modelPath;
                 psi.EnvironmentVariables["ANTIGRAVITY_LITERT_BACKEND"] = liteRTBackend;
+                psi.EnvironmentVariables["ANTIGRAVITY_LITERT_CACHE_DIR"] = liteRTCacheDir;
             }
             else
             {
