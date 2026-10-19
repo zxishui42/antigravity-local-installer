@@ -23,6 +23,25 @@ on:
       - '.github/workflows/cross-platform-release.yml'
 
 jobs:
+  plan:
+    runs-on: ubuntu-latest
+    outputs:
+      macos_count: ${{ steps.counts.outputs.macos_count }}
+    steps:
+      - uses: actions/checkout@v4
+      - id: counts
+        shell: bash
+        run: |
+          python3 - <<'PY' >> "$GITHUB_OUTPUT"
+          import json
+          data=json.load(open("src/_internal/pack.json"))
+          count=sum(
+              1 for p in data["profiles"]
+              if p.get("platform")=="macos" and p.get("verified") is True and p.get("release",True) is True
+          )
+          print("macos_count="+str(count))
+          PY
+
   windows:
     runs-on: windows-latest
     timeout-minutes: 30
@@ -42,7 +61,8 @@ jobs:
           if-no-files-found: error
 
   macos:
-    runs-on: macos-latest
+    needs: [plan]
+    runs-on: ${{ needs.plan.outputs.macos_count == '0' && 'ubuntu-latest' || 'macos-latest' }}
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
