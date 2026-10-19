@@ -33,43 +33,57 @@ if($ratio -lt 0){$ratio=0};if($ratio -gt 1){$ratio=1}
 $progress=[int](45+($ratio*15))
 Assert-True ($progress -ge 45 -and $progress -le 60) 'Large-file progress math failed.'
 
-Write-Host '4) Regression: warning on stderr with exit 0 is success'
-$out=Join-Path $env:RUNNER_TEMP 'warning-out.txt'
-$err=Join-Path $env:RUNNER_TEMP 'warning-err.txt'
-Remove-Item $out,$err -Force -ErrorAction SilentlyContinue
-$p=Start-Process powershell.exe -ArgumentList @('-NoProfile','-Command',"[Console]::Error.WriteLine('WARNING: harmless');Write-Output 'OK';exit 0") -PassThru -RedirectStandardOutput $out -RedirectStandardError $err
-Assert-True ($p.WaitForExit(30000)) 'Warning test process timed out.'
-$p.WaitForExit()
-$p.Refresh()
-$code=$p.ExitCode
-Assert-True ($null -ne $code -and [int]$code -eq 0) "Warning test exit code was $code"
-Assert-True ((Get-Content $out -Raw).Trim() -eq 'OK') 'Warning test stdout mismatch.'
-Assert-True ((Get-Content $err -Raw) -match 'WARNING') 'Warning test stderr missing.'
+Write-Host '4) Regression: child-written exit status survives Windows PowerShell 5'
+$child=Join-Path $env:RUNNER_TEMP 'ci-child.ps1'
+$wrapper=Join-Path $env:RUNNER_TEMP 'ci-wrapper.ps1'
+$out=Join-Path $env:RUNNER_TEMP 'ci-child.out'
+$err=Join-Path $env:RUNNER_TEMP 'ci-child.err'
+$codeFile=Join-Path $env:RUNNER_TEMP 'ci-child.code'
+@"
+Write-Output 'OK'
+[Console]::Error.WriteLine('WARNING: harmless')
+exit 0
+"@ | Set-Content $child -Encoding UTF8
+$childLiteral=$child.Replace("'","''")
+$outLiteral=$out.Replace("'","''")
+$errLiteral=$err.Replace("'","''")
+$codeLiteral=$codeFile.Replace("'","''")
+@"
+`$ErrorActionPreference='Continue'
+& powershell.exe -NoProfile -File '$childLiteral' 1> '$outLiteral' 2> '$errLiteral'
+`$nativeCode=`$LASTEXITCODE
+if(`$null -eq `$nativeCode){`$nativeCode=0}
+Set-Content -LiteralPath '$codeLiteral' -Value ([string]`$nativeCode) -Encoding ASCII
+exit `$nativeCode
+"@ | Set-Content $wrapper -Encoding UTF8
+Remove-Item $out,$err,$codeFile -Force -ErrorAction SilentlyContinue
+$p=Start-Process powershell.exe -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-File',$wrapper) -PassThru
+Assert-True ($p.WaitForExit(30000)) 'Sidecar status test timed out.'
+Assert-True (Test-Path $codeFile) 'Child status sidecar was not written.'
+$codeRaw=(Get-Content $codeFile -Raw).Trim()
+Assert-True ($codeRaw -eq '0') "Expected child status 0, got '$codeRaw'"
+Assert-True ((Get-Content $out -Raw).Trim() -eq 'OK') 'Child stdout mismatch.'
+Assert-True ((Get-Content $err -Raw) -match 'WARNING') 'Child stderr warning missing.'
 
-Write-Host '5) Regression: exact OK-output success pattern'
-$out2=Join-Path $env:RUNNER_TEMP 'agent-out.txt'
-$err2=Join-Path $env:RUNNER_TEMP 'agent-err.txt'
-Remove-Item $out2,$err2 -Force -ErrorAction SilentlyContinue
-$p2=Start-Process powershell.exe -ArgumentList @('-NoProfile','-Command',"Write-Output 'OK';exit 0") -PassThru -RedirectStandardOutput $out2 -RedirectStandardError $err2
-Assert-True ($p2.WaitForExit(30000)) 'Agent simulation timed out.'
-$p2.WaitForExit()
-$p2.Refresh()
-$exitCode=$p2.ExitCode
-$o=if(Test-Path $out2){Get-Content $out2 -Raw}else{''}
-Assert-True ($null -ne $exitCode -and [int]$exitCode -eq 0) "Agent success was incorrectly read as failure: $exitCode"
-Assert-True (-not [string]::IsNullOrWhiteSpace($o)) 'Agent OK output was read as empty.'
-
-Write-Host '6) Inspect production regression guards'
+Write-Host '5) Regression: production Antigravity test uses sidecar, not parent ExitCode'
 $worker=Get-Content '_internal/worker.ps1' -Raw
-Assert-True ($worker.Contains('$p.WaitForExit()')) 'Production worker is missing final parameterless WaitForExit().'
-Assert-True ($worker.Contains('$p.Refresh()')) 'Production worker is missing Process.Refresh().'
-Assert-True ($worker.Contains('$exitCode=$p.ExitCode')) 'Production worker does not snapshot ExitCode.'
-Assert-True ($worker.Contains('if($null -eq $exitCode -or [int]$exitCode -ne 0)')) 'Production success check is not null-safe.'
-Assert-True ($worker.Contains('Antigravity returned no output.')) 'Production worker accepts empty output.'
-Assert-True (-not $worker.Contains("if($p.ExitCode -ne 0){throw 'Antigravity could not connect to the model.'}")) 'Old stale ExitCode check remains.'
+$testStart=$worker.IndexOf('function Test-Antigravity {')
+$testEnd=$worker.IndexOf('function Write-UserLauncher',$testStart)
+Assert-True ($testStart -ge 0 -and $testEnd -gt $testStart) 'Test-Antigravity block missing.'
+$testBlock=$worker.Substring($testStart,$testEnd-$testStart)
+Assert-True ($testBlock.Contains('$codeFile=')) 'Antigravity test has no status sidecar.'
+Assert-True ($testBlock.Contains('$nativeCode=$LASTEXITCODE')) 'Child wrapper does not record LASTEXITCODE.'
+Assert-True ($testBlock.Contains('agent-test-wrapper.ps1')) 'Child wrapper file is missing.'
+Assert-True (-not $testBlock.Contains('$p.ExitCode')) 'Antigravity test still depends on unreliable parent ExitCode.'
+Assert-True ($testBlock.Contains('if($null -eq $exitCode -or $exitCode -ne 0)')) 'Sidecar success check is not null-safe.'
+Assert-True ($testBlock.Contains('Antigravity returned no output.')) 'Antigravity test accepts empty output.'
+
+Write-Host '6) Inspect other production regression guards'
+Assert-True (-not $worker.Contains("`$proc.ExitCode -eq 0")) 'User launcher still depends on Process.ExitCode.'
 Assert-True ($worker.Contains('--no-warn-script-location')) 'pip warning suppression missing.'
 Assert-True ($worker.Contains('[long](FolderBytes $ModelRoot)')) 'Model size accounting is not explicitly 64-bit.'
-Assert-True ($worker.Contains("OLLAMA_MODELS")) 'Private model directory isolation missing.'
+Assert-True ($worker.Contains('OLLAMA_MODELS')) 'Private model directory isolation missing.'
+Assert-True ($worker.Contains('download_stall_seconds')) 'Download stall handling missing.'
 
 Write-Host '7) Python syntax'
 python -m py_compile '_internal/local_agent.py'
