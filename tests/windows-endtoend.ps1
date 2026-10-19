@@ -7,8 +7,8 @@ function Read-JsonSafe([string]$Path){
   if(-not(Test-Path $Path)){return $null}
   try{return Get-Content $Path -Raw|ConvertFrom-Json}catch{return $null}
 }
-function Stop-Tree([int]$Pid){
-  try{& taskkill.exe /PID $Pid /T /F | Out-Null}catch{}
+function Stop-Tree([int]$ProcessId){
+  try{& taskkill.exe /PID $ProcessId /T /F | Out-Null}catch{}
 }
 
 $repoRoot=(Get-Location).Path
