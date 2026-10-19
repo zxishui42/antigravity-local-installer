@@ -31,7 +31,8 @@ jobs:
             'tests/windows-ci.ps1',
             'tests/profile-catalog.ps1',
             'tests/profile-model-validation.ps1',
-            'tests/litert-windows-preflight.ps1'
+            'tests/litert-windows-preflight.ps1',
+            'tests/windows-litert-endtoend.ps1'
           )
           foreach($file in $files){
             $tokens=$null
@@ -52,3 +53,9 @@ jobs:
             $null=Get-Content $file -Raw | ConvertFrom-Json
             Write-Host "JSON OK: $file"
           }
+
+      - name: Compile Python agent templates
+        shell: bash
+        run: |
+          python -m py_compile src/_internal/local_agent.py
+          python -m py_compile src/_internal/litert_agent.py
