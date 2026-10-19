@@ -16,13 +16,18 @@ function Test-ProfileMatch($Profile){
     if($null -ne $Profile.min_ram_gb -and $DetectedRamGb -lt [double]$Profile.min_ram_gb){return $false}
     $vendor=[string]$Profile.gpu_vendor
     if($vendor -and $vendor.ToLowerInvariant() -ne 'any'){
-        $pattern=switch($vendor.ToLowerInvariant()){
-            'amd' {'AMD|Radeon'}
-            'nvidia' {'NVIDIA|GeForce|RTX|GTX'}
-            'intel' {'Intel|Arc'}
-            default {[Regex]::Escape($vendor)}
+        if($vendor.ToLowerInvariant() -eq 'cpu-only'){
+            $accelerated=@($DetectedGpuNames | Where-Object { $_ -match 'NVIDIA|GeForce|RTX|GTX|AMD|Radeon|Intel.*Arc' })
+            if($accelerated.Count -gt 0){return $false}
+        } else {
+            $pattern=switch($vendor.ToLowerInvariant()){
+                'amd' {'AMD|Radeon'}
+                'nvidia' {'NVIDIA|GeForce|RTX|GTX'}
+                'intel' {'Intel.*Arc'}
+                default {[Regex]::Escape($vendor)}
+            }
+            if(-not(@($DetectedGpuNames | Where-Object { $_ -match $pattern }).Count)){return $false}
         }
-        if(-not(@($DetectedGpuNames | Where-Object { $_ -match $pattern }).Count)){return $false}
     }
     return $true
 }
