@@ -36,7 +36,7 @@ $title.Location = New-Object System.Drawing.Point(34, 28)
 $form.Controls.Add($title)
 
 $subtitle = New-Object System.Windows.Forms.Label
-$subtitle.Text = 'Gemma 4 E2B with Ollama'
+$subtitle.Text = 'One installer chooses the tested setup for this PC.'
 $subtitle.ForeColor = [System.Drawing.Color]::FromArgb(80,80,80)
 $subtitle.AutoSize = $true
 $subtitle.Location = New-Object System.Drawing.Point(36, 70)
@@ -69,7 +69,7 @@ $driveBox.SelectedIndex = 0
 $form.Controls.Add($driveBox)
 
 $locationHint = New-Object System.Windows.Forms.Label
-$locationHint.Text = 'The model, private runtime, and Antigravity files will be kept on this drive.'
+$locationHint.Text = 'The selected local model and its required files will be kept on this drive.'
 $locationHint.ForeColor = [System.Drawing.Color]::FromArgb(90,90,90)
 $locationHint.Size = New-Object System.Drawing.Size(550, 34)
 $locationHint.Location = New-Object System.Drawing.Point(38, 189)
