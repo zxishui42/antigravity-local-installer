@@ -1,0 +1,38 @@
+name: Candidate profile validation
+
+on:
+  workflow_dispatch:
+    inputs:
+      profile:
+        description: 'Candidate profile id'
+        required: false
+        default: 'all'
+  push:
+    branches: [main]
+    paths:
+      - 'src/_internal/pack.json'
+      - 'tests/profile-model-validation.ps1'
+      - '.github/workflows/candidate-profile-validation.yml'
+
+jobs:
+  validate-candidate:
+    runs-on: windows-latest
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        profile:
+          - windows-ollama-gemma4-e4b-qat
+          - windows-ollama-gemma4-12b-qat
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate real candidate model
+        shell: powershell
+        run: .\tests\profile-model-validation.ps1 -ProfileId "${{ matrix.profile }}"
