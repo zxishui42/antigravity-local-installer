@@ -131,17 +131,40 @@ function Write-AgentFile { $template=Get-Content (Join-Path $ScriptRoot 'local_a
 function Test-Model {Status 'Testing the setup' 'Starting the model and checking that it answers.' 'No action is needed.' 84;$body=@{model=$Pack.model;prompt='Reply with only: OK';stream=$false;keep_alive='5m'}|ConvertTo-Json;$result=Invoke-RestMethod -Uri "$ApiBase/api/generate" -Method Post -Body $body -ContentType 'application/json' -TimeoutSec 240;if(-not$result.response){throw 'The model did not return a response.'};$ps=Invoke-RestMethod -Uri "$ApiBase/api/ps" -TimeoutSec 10;$m=$ps.models|Where-Object{$_.name -like ($Pack.model+'*') -or $_.model -like ($Pack.model+'*')}|Select-Object -First 1;$v=0L;if($m){try{$v=[long]$m.size_vram}catch{}};return $v}
 function Test-Antigravity {
     Status 'Testing Antigravity' 'Checking the connection to the local model.' 'No action is needed.' 92
-    $outFile=Join-Path $RunRoot 'agent-test.out';$errFile=Join-Path $RunRoot 'agent-test.err';Remove-Item $outFile,$errFile -Force -ErrorAction SilentlyContinue
-    $p=Start-Process -FilePath $PythonExe -ArgumentList @((Join-Path $InstallRoot 'local_agent.py')) -WindowStyle Hidden -PassThru -RedirectStandardOutput $outFile -RedirectStandardError $errFile
+    $outFile=Join-Path $RunRoot 'agent-test.out'
+    $errFile=Join-Path $RunRoot 'agent-test.err'
+    $codeFile=Join-Path $RunRoot 'agent-test.code'
+    $wrapperFile=Join-Path $RunRoot 'agent-test-wrapper.ps1'
+    Remove-Item $outFile,$errFile,$codeFile,$wrapperFile -Force -ErrorAction SilentlyContinue
+
+    $pythonLiteral=$PythonExe.Replace("'","''")
+    $agentLiteral=(Join-Path $InstallRoot 'local_agent.py').Replace("'","''")
+    $outLiteral=$outFile.Replace("'","''")
+    $errLiteral=$errFile.Replace("'","''")
+    $codeLiteral=$codeFile.Replace("'","''")
+    @"
+`$ErrorActionPreference='Continue'
+& '$pythonLiteral' '$agentLiteral' 1> '$outLiteral' 2> '$errLiteral'
+`$nativeCode=`$LASTEXITCODE
+if(`$null -eq `$nativeCode){`$nativeCode=0}
+Set-Content -LiteralPath '$codeLiteral' -Value ([string]`$nativeCode) -Encoding ASCII
+exit `$nativeCode
+"@ | Set-Content $wrapperFile -Encoding UTF8
+
+    $p=Start-Process -FilePath 'powershell.exe' -ArgumentList @('-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File',$wrapperFile) -WindowStyle Hidden -PassThru
     if(-not $p.WaitForExit(180000)){try{$p.Kill()}catch{};throw 'Antigravity connection test timed out.'}
-    # On Windows PowerShell 5, the timed WaitForExit overload can leave ExitCode unavailable
-    # when stdout/stderr are redirected. A final parameterless WaitForExit drains the async
-    # redirect handles and makes the exit code reliable.
-    $p.WaitForExit()
-    $p.Refresh()
-    $exitCode=$p.ExitCode
-    $o=if(Test-Path $outFile){Get-Content $outFile -Raw}else{''};$e=if(Test-Path $errFile){Get-Content $errFile -Raw}else{''};Log "Antigravity output: $o";if($e){Log "Antigravity stderr: $e"};Log "Antigravity exit code: $exitCode"
-    if($null -eq $exitCode -or [int]$exitCode -ne 0){throw 'Antigravity could not connect to the model.'}
+
+    $o=if(Test-Path $outFile){Get-Content $outFile -Raw}else{''}
+    $e=if(Test-Path $errFile){Get-Content $errFile -Raw}else{''}
+    $exitCode=$null
+    if(Test-Path $codeFile){
+        $rawCode=(Get-Content $codeFile -Raw).Trim()
+        if($rawCode -match '^-?\d+$'){$exitCode=[int]$rawCode}
+    }
+    Log "Antigravity output: $o"
+    if($e){Log "Antigravity stderr: $e"}
+    Log "Antigravity child exit code: $exitCode"
+    if($null -eq $exitCode -or $exitCode -ne 0){throw 'Antigravity could not connect to the model.'}
     if([string]::IsNullOrWhiteSpace($o)){throw 'Antigravity returned no output.'}
 }
 function Write-UserLauncher([string]$OllamaExe){
@@ -168,8 +191,8 @@ function StopServer {if(Test-Path \`$PidFile){try{\`$pidValue=[int](Get-Content 
 \`$out=New-Object Windows.Forms.TextBox;\`$out.Multiline=\`$true;\`$out.ReadOnly=\`$true;\`$out.ScrollBars='Vertical';\`$out.Location=New-Object Drawing.Point(30,240);\`$out.Size=New-Object Drawing.Size(540,115);\`$f.Controls.Add(\`$out)
 \`$timer=New-Object Windows.Forms.Timer;\`$timer.Interval=400;\`$proc=\`$null;\`$stdoutFile=Join-Path \`$env:TEMP ('aglocal-out-'+[guid]::NewGuid().ToString('N')+'.txt');\`$stderrFile=Join-Path \`$env:TEMP ('aglocal-err-'+[guid]::NewGuid().ToString('N')+'.txt')
 \`$run.Add_Click({if(\`$proc -and -not \`$proc.HasExited){return};\`$run.Enabled=\`$false;\`$out.Text='Starting...';\`$f.Refresh();try{EnsureServer;Remove-Item \`$stdoutFile,\`$stderrFile -Force -ErrorAction SilentlyContinue;\`$oldPrompt=\`$env:ANTIGRAVITY_LOCAL_PROMPT;\`$env:ANTIGRAVITY_LOCAL_PROMPT=\`$input.Text;try{\`$proc=Start-Process -FilePath \`$Python -ArgumentList @(\`$Agent) -WindowStyle Hidden -PassThru -RedirectStandardOutput \`$stdoutFile -RedirectStandardError \`$stderrFile}finally{\`$env:ANTIGRAVITY_LOCAL_PROMPT=\`$oldPrompt};\`$out.Text='Running...';\`$timer.Start()}catch{\`$out.Text='Could not start the local setup.'+[Environment]::NewLine+\`$_.Exception.Message;\`$run.Enabled=\`$true}})
-\`$timer.Add_Tick({if(-not \`$proc){return};if(-not \`$proc.HasExited){return};\`$timer.Stop();\`$stdout=if(Test-Path \`$stdoutFile){Get-Content \`$stdoutFile -Raw}else{''};\`$stderr=if(Test-Path \`$stderrFile){Get-Content \`$stderrFile -Raw}else{''};if(\`$proc.ExitCode -eq 0){\`$out.Text=\`$stdout}else{\`$out.Text='The local setup returned an error.'+[Environment]::NewLine+\`$stderr};\`$run.Enabled=\`$true})
-\`$f.Add_FormClosing({try{if(\`$proc -and -not \`$proc.HasExited){\`$proc.Kill()}}catch{};StopServer;Remove-Item \`$stdoutFile,\`$stderrFile -Force -ErrorAction SilentlyContinue})
+\`$timer.Add_Tick({if(-not \`$proc){return};if(-not \`$proc.HasExited){return};\`$timer.Stop();\`$stdout=if(Test-Path \`$stdoutFile){Get-Content \`$stdoutFile -Raw}else{''};\`$stderr=if(Test-Path \`$stderrFile){Get-Content \`$stderrFile -Raw}else{''};if(-not [string]::IsNullOrWhiteSpace(\`$stdout)){\`$out.Text=\`$stdout}else{\`$out.Text='The local setup returned an error.'+[Environment]::NewLine+\`$stderr};\`$run.Enabled=\`$true})
+`$f.Add_FormClosing({try{if(\`$proc -and -not \`$proc.HasExited){\`$proc.Kill()}}catch{};StopServer;Remove-Item \`$stdoutFile,\`$stderrFile -Force -ErrorAction SilentlyContinue})
 [void]\`$f.ShowDialog()
 "@
     Set-Content (Join-Path $InstallRoot 'local-ui.ps1') $ui -Encoding UTF8
