@@ -117,6 +117,7 @@ $result=[ordered]@{
     configuration_count=$rows.Count
     installer_available_count=@($rows | Where-Object { $_.status -eq 'installer_available' }).Count
     pending_validation_count=@($rows | Where-Object { $_.status -eq 'pending_validation' }).Count
+    unsupported_route_count=@($rows | Where-Object { $_.status -eq 'unsupported_route' }).Count
     no_verified_installer_count=@($rows | Where-Object { $_.status -eq [string]$routing.default_status }).Count
     configurations=@($rows)
 }
@@ -128,6 +129,7 @@ $coverage=[ordered]@{
     configuration_count=$result.configuration_count
     installer_available_count=$result.installer_available_count
     pending_validation_count=$result.pending_validation_count
+    unsupported_route_count=$result.unsupported_route_count
     no_verified_installer_count=$result.no_verified_installer_count
     by_os=@()
     by_graphics=@()
@@ -135,13 +137,13 @@ $coverage=[ordered]@{
     by_profile=@()
 }
 foreach($g in @($rows | Group-Object os)){
-    $coverage.by_os += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count}
+    $coverage.by_os += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count;unsupported_route=@($g.Group|Where-Object{$_.status -eq 'unsupported_route'}).Count}
 }
 foreach($g in @($rows | Group-Object graphics)){
-    $coverage.by_graphics += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count}
+    $coverage.by_graphics += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count;unsupported_route=@($g.Group|Where-Object{$_.status -eq 'unsupported_route'}).Count}
 }
 foreach($g in @($rows | Group-Object runtime)){
-    $coverage.by_runtime += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count}
+    $coverage.by_runtime += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count;unsupported_route=@($g.Group|Where-Object{$_.status -eq 'unsupported_route'}).Count}
 }
 foreach($g in @($rows | Where-Object{$_.status -eq 'installer_available'} | Group-Object profile_id)){
     $coverage.by_profile += [pscustomobject]@{name=$g.Name;configuration_count=$g.Count}
@@ -152,6 +154,7 @@ $coverage | ConvertTo-Json -Depth 12 | Set-Content $coverageOut -Encoding UTF8
 Write-Host ("Generated "+$rows.Count+" website configuration routes.")
 Write-Host ("Installer available: "+$result.installer_available_count)
 Write-Host ("Pending validation: "+$result.pending_validation_count)
+Write-Host ("Unsupported route: "+$result.unsupported_route_count)
 Write-Host ("No verified installer yet: "+$result.no_verified_installer_count)
 Write-Host ("Routing table: "+$out)
 Write-Host ("Coverage report: "+$coverageOut)
