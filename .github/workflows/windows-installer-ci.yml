@@ -83,4 +83,5 @@ jobs:
             dist/installer-catalog.json
             dist/site-installer-routing.json
             dist/site-installer-coverage.json
+            dist/installer-work-queue.json
           if-no-files-found: error
