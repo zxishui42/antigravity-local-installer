@@ -161,6 +161,31 @@ foreach($g in @($rows | Where-Object{$_.status -eq 'installer_available'} | Grou
 $coverageOut=Join-Path $outDir 'site-installer-coverage.json'
 $coverage | ConvertTo-Json -Depth 12 | Set-Content $coverageOut -Encoding UTF8
 
+$workItems=@()
+$workRows=@($rows | Where-Object { $_.status -eq 'pending_validation' -or $_.status -eq 'pending_product_definition' })
+foreach($group in @($workRows | Group-Object { ([string]$_.status)+'|'+([string]$_.final_check)+'|'+([string]$_.profile_id) })){
+    $first=@($group.Group)[0]
+    $workItems += [pscustomobject]@{
+        status=[string]$first.status
+        final_check=[string]$first.final_check
+        profile_id=if([string]::IsNullOrWhiteSpace([string]$first.profile_id)){$null}else{[string]$first.profile_id}
+        configuration_count=$group.Count
+        operating_systems=@($group.Group | Select-Object -ExpandProperty os -Unique)
+        graphics=@($group.Group | Select-Object -ExpandProperty graphics -Unique)
+        runtimes=@($group.Group | Select-Object -ExpandProperty runtime -Unique)
+    }
+}
+$workItems=@($workItems | Sort-Object @{Expression={[int]$_.configuration_count};Descending=$true},final_check)
+$workQueue=[ordered]@{
+    schema_version=1
+    generated_utc=$result.generated_utc
+    total_pending_configurations=$workRows.Count
+    item_count=$workItems.Count
+    items=$workItems
+}
+$workQueueOut=Join-Path $outDir 'installer-work-queue.json'
+$workQueue | ConvertTo-Json -Depth 12 | Set-Content $workQueueOut -Encoding UTF8
+
 Write-Host ("Generated "+$rows.Count+" website configuration routes.")
 Write-Host ("Installer available: "+$result.installer_available_count)
 Write-Host ("Pending validation: "+$result.pending_validation_count)
@@ -169,3 +194,4 @@ Write-Host ("Pending product definition: "+$result.pending_product_definition_co
 Write-Host ("No verified installer yet: "+$result.no_verified_installer_count)
 Write-Host ("Routing table: "+$out)
 Write-Host ("Coverage report: "+$coverageOut)
+Write-Host ("Installer work queue: "+$workQueueOut)
