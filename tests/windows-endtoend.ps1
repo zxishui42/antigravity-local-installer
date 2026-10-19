@@ -28,6 +28,7 @@ $pack.registry_manifest_url='https://registry.ollama.ai/v2/library/qwen3/manifes
 $pack.fallback_required_gb=4.0
 $pack.app_overhead_gb=1.5
 $config.shared.download_stall_seconds=180
+$config.profiles=@($pack)
 $config|ConvertTo-Json -Depth 8|Set-Content $packPath -Encoding UTF8
 
 $installRoot='D:\AntigravityLocal\gemma4-e2b'
