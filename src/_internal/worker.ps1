@@ -214,7 +214,14 @@ Remove-Item 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Ant
 [System.Windows.Forms.MessageBox]::Show('Antigravity Local was removed.','Uninstall Antigravity Local')|Out-Null
 "@
     $unPath=Join-Path $uninstallDir 'uninstall.ps1';Set-Content $unPath $un -Encoding UTF8
-    $key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\AntigravityLocal-gemma4-e2b';New-Item $key -Force|Out-Null;New-ItemProperty $key DisplayName 'Antigravity Local — Gemma 4 E2B' -PropertyType String -Force|Out-Null;New-ItemProperty $key Publisher 'Antigravity Local Models' -PropertyType String -Force|Out-Null;New-ItemProperty $key DisplayVersion $Pack.version -PropertyType String -Force|Out-Null;New-ItemProperty $key InstallLocation $InstallRoot -PropertyType String -Force|Out-Null;New-ItemProperty $key UninstallString ("powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \`"$unPath\`"") -PropertyType String -Force|Out-Null
+    $key='HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\AntigravityLocal-gemma4-e2b'
+    New-Item -Path $key -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'DisplayName' -Value 'Antigravity Local - Gemma 4 E2B' -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'Publisher' -Value 'Antigravity Local Models' -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'DisplayVersion' -Value ([string]$Pack.version) -PropertyType String -Force | Out-Null
+    New-ItemProperty -Path $key -Name 'InstallLocation' -Value $InstallRoot -PropertyType String -Force | Out-Null
+    $uninstallCommand=("powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \`\""+$unPath+"\`\"")
+    New-ItemProperty -Path $key -Name 'UninstallString' -Value $uninstallCommand -PropertyType String -Force | Out-Null
 }
 
 try {
