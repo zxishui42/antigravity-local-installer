@@ -20,7 +20,6 @@
       "model": "gemma4:e2b",
       "model_label": "Gemma 4 E2B",
       "min_ram_gb": 8,
-      "min_vram_gb": 0,
       "gpu_vendor": "any",
       "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e2b",
       "app_overhead_gb": 2.5,
