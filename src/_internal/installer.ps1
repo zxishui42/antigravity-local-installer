@@ -129,7 +129,7 @@ $copy.Visible = $false
 $form.Controls.Add($copy)
 
 $openButton = New-Object System.Windows.Forms.Button
-$openButton.Text = 'Open'
+$openButton.Text = 'Test installation'
 $openButton.Location = New-Object System.Drawing.Point(40, 430)
 $openButton.Size = New-Object System.Drawing.Size(160, 42)
 $openButton.FlatStyle = 'Flat'
@@ -198,6 +198,9 @@ $timer.Add_Tick({
         } else { $progress.Style = 'Marquee'; $progress.MarqueeAnimationSpeed = 25 }
     } elseif ($s.state -eq 'success') {
         $timer.Stop(); $progress.Style='Blocks'; $progress.Value=100
+        $statusTitle.Text='Installation complete'
+        $statusText.Text='Your local Antigravity setup is installed and ready.'
+        $details.Text='Run the installation test once to confirm this PC can start the model and return a response.'
         $primary.Visible=$false; $secondary.Text='Finish'; $secondary.Enabled=$true
         $openButton.Visible=$true; $copy.Visible=$false
     } elseif ($s.state -eq 'error') {
