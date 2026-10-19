@@ -19,10 +19,11 @@ $source=Join-Path $repoRoot 'build\bootstrapper.cs'
 $installer=Join-Path $prepared '_internal\installer.ps1'
 $worker=Join-Path $prepared '_internal\worker.ps1'
 $agent=Join-Path $prepared '_internal\local_agent.py'
+$litertAgent=Join-Path $prepared '_internal\litert_agent.py'
 $pack=Join-Path $prepared '_internal\pack.json'
 $app=Join-Path $prepared '_internal\AntigravityLocal.exe'
-foreach($p in @($source,$installer,$worker,$agent,$pack,$app)){ if(-not(Test-Path $p)){throw "Required bootstrapper input is missing: $p"} }
-& $csc /nologo /target:winexe /platform:x64 /optimize+ /reference:System.Windows.Forms.dll "/resource:$installer,Payload.Installer" "/resource:$worker,Payload.Worker" "/resource:$agent,Payload.Agent" "/resource:$pack,Payload.Pack" "/resource:$app,Payload.App" "/out:$exe" $source
+foreach($p in @($source,$installer,$worker,$agent,$litertAgent,$pack,$app)){ if(-not(Test-Path $p)){throw "Required bootstrapper input is missing: $p"} }
+& $csc /nologo /target:winexe /platform:x64 /optimize+ /reference:System.Windows.Forms.dll "/resource:$installer,Payload.Installer" "/resource:$worker,Payload.Worker" "/resource:$agent,Payload.Agent" "/resource:$litertAgent,Payload.LiteRTAgent" "/resource:$pack,Payload.Pack" "/resource:$app,Payload.App" "/out:$exe" $source
 if($LASTEXITCODE -ne 0){throw "csc.exe returned exit code $LASTEXITCODE"}
 if(-not(Test-Path $exe)){throw ("Installer was not created: "+$OutputName)}
 if((Get-Item $exe).Length -lt 10000){throw 'AntigravityLocalSetup.exe is unexpectedly small.'}
