@@ -6,10 +6,24 @@ def main():
     ap=argparse.ArgumentParser()
     ap.add_argument("--catalog",required=True)
     ap.add_argument("--routing",required=True)
+    ap.add_argument("--package-root")
     args=ap.parse_args()
     catalog=json.loads(Path(args.catalog).read_text())
     routing=json.loads(Path(args.routing).read_text())
     by_id={x["id"]:x for x in catalog.get("installers",[])}
+    if args.package_root:
+        import hashlib
+        root=Path(args.package_root)
+        for item in by_id.values():
+            path=root/item["installer_file"]
+            if not path.is_file():
+                raise SystemExit(f"Released package file is missing: {path}")
+            h=hashlib.sha256()
+            with path.open("rb") as fh:
+                for chunk in iter(lambda:fh.read(1024*1024),b""):
+                    h.update(chunk)
+            if h.hexdigest().lower()!=str(item["sha256"]).lower():
+                raise SystemExit(f"Released package checksum mismatch: {item['id']}")
     available=[x for x in routing.get("configurations",[]) if x.get("status")=="installer_available"]
     if not available:
         raise SystemExit("No installer_available website configurations.")
