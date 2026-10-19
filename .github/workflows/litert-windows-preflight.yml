@@ -1,0 +1,26 @@
+name: Windows LiteRT preflight
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'tests/litert-windows-preflight.ps1'
+      - '.github/workflows/litert-windows-preflight.yml'
+
+jobs:
+  litert-preflight:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Windows LiteRT dependencies
+        shell: powershell
+        run: .\tests\litert-windows-preflight.ps1
