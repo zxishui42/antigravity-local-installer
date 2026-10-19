@@ -6,6 +6,8 @@ param(
 $ErrorActionPreference='Stop'
 $ProgressPreference='SilentlyContinue'
 $Config=Get-Content (Join-Path $ScriptRoot 'pack.json') -Raw | ConvertFrom-Json
+$StatusFile=Join-Path $RunRoot 'status.json'
+$LogFile=Join-Path $RunRoot 'install.log'
 $DetectedRamGb=[Math]::Round((Get-CimInstance Win32_ComputerSystem).TotalPhysicalMemory/1GB,0)
 $DetectedGpuNames=@(Get-CimInstance Win32_VideoController -ErrorAction SilentlyContinue | ForEach-Object { [string]$_.Name })
 
@@ -26,15 +28,25 @@ function Test-ProfileMatch($Profile){
 }
 
 $Profile=@($Config.profiles | Where-Object { Test-ProfileMatch $_ } | Sort-Object @{Expression={[int]$_.priority};Descending=$true} | Select-Object -First 1)[0]
-if($null -eq $Profile){throw 'No verified install profile matches this PC.'}
+if($null -eq $Profile){
+    $gpuText=if($DetectedGpuNames.Count -gt 0){$DetectedGpuNames -join ', '}else{'No graphics adapter name was detected.'}
+    $obj=[ordered]@{
+        state='error'
+        title='No tested setup matches this PC yet'
+        message='This installer does not have a verified one-click setup for this computer yet.'
+        details=("Detected memory: $DetectedRamGb GB. "+$gpuText)
+        progress=0
+        time=(Get-Date).ToString('o')
+    }
+    ($obj|ConvertTo-Json -Compress)|Set-Content $StatusFile -Encoding UTF8
+    exit 1
+}
 
 $merged=[ordered]@{}
 foreach($p in $Config.shared.PSObject.Properties){$merged[$p.Name]=$p.Value}
 foreach($p in $Profile.PSObject.Properties){$merged[$p.Name]=$p.Value}
 $Pack=[pscustomobject]$merged
 
-$StatusFile=Join-Path $RunRoot 'status.json'
-$LogFile=Join-Path $RunRoot 'install.log'
 $DriveRoot=$TargetDrive.TrimEnd('\') + '\'
 $InstallRoot=Join-Path $DriveRoot ('AntigravityLocal\'+[string]$Pack.install_folder)
 $ModelRoot=Join-Path $InstallRoot 'models'
@@ -203,7 +215,7 @@ function Write-UserLauncher([string]$OllamaExe){
 
     $shell=New-Object -ComObject WScript.Shell
     $desktop=[Environment]::GetFolderPath('Desktop')
-    $shortcut=$shell.CreateShortcut((Join-Path $desktop 'Antigravity Local.lnk'))
+    $shortcut=$shell.CreateShortcut((Join-Path $desktop 'Antigravity Installation Test.lnk'))
     $shortcut.TargetPath=$appPath
     $shortcut.WorkingDirectory=$InstallRoot
     $shortcut.Save()
@@ -220,7 +232,8 @@ Add-Type -AssemblyName System.Windows.Forms
 \`$desktop=[Environment]::GetFolderPath('Desktop')
 \`$a=[System.Windows.Forms.MessageBox]::Show('Remove Antigravity Local and its private model files?','Uninstall Antigravity Local','YesNo','Question');if(\`$a -ne 'Yes'){exit}
 \`$pidFile=Join-Path \`$root 'ollama-server.pid';if(Test-Path \`$pidFile){try{\`$pidValue=[int](Get-Content \`$pidFile);Stop-Process -Id \`$pidValue -Force -ErrorAction SilentlyContinue}catch{}}
-Remove-Item (Join-Path \`$desktop 'Antigravity Local.lnk') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path `$desktop 'Antigravity Installation Test.lnk') -Force -ErrorAction SilentlyContinue
+Remove-Item (Join-Path `$desktop 'Antigravity Local.lnk') -Force -ErrorAction SilentlyContinue
 Remove-Item \`$root -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item '$($uninstallKey.Replace("'","''"))' -Recurse -Force -ErrorAction SilentlyContinue
 [System.Windows.Forms.MessageBox]::Show('Antigravity Local was removed.','Uninstall Antigravity Local')|Out-Null
