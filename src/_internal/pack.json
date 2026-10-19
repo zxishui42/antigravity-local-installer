@@ -9,7 +9,39 @@
     "port_end": 11455,
     "download_stall_seconds": 300,
     "version": "3.2-rc1",
-    "litert_lm_version": "0.18.0"
+    "litert_lm_version": "0.18.0",
+    "ollama_version": "0.40.6",
+    "uv_version": "0.13.1",
+    "uv_assets": {
+      "macos-arm64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-apple-darwin.tar.gz",
+        "sha256": "cfe454573412ff7380d15fc7dae5997ab53ffce72fce0a78e91ddbc84001acd2"
+      },
+      "macos-x64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-apple-darwin.tar.gz",
+        "sha256": "bb7b805bdcf3d0bc8c74ceb94569e6b3e8aa35bd492acdbb9d46bf46d9d4ff6b"
+      },
+      "linux-x64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-x86_64-unknown-linux-gnu.tar.gz",
+        "sha256": "eadd9d27c134ab5ac1ffd4473b97a741407f3ea238288f03121fc4deddf90220"
+      },
+      "linux-arm64": {
+        "url": "https://github.com/astral-sh/uv/releases/download/0.13.1/uv-aarch64-unknown-linux-gnu.tar.gz",
+        "sha256": "9041c73c99fdc5892cf128140beb354eca9231d502068cc36e6cb53a8e59ad14"
+      }
+    },
+    "ollama_assets": {
+      "macos-universal": {
+        "url": "https://github.com/ollama/ollama/releases/download/v0.40.6/ollama-darwin.tgz",
+        "sha256": "b2b55434865a668decb494110d7fd970eed3ecc8837be2872f672ccbb95df974",
+        "archive": "tgz"
+      },
+      "linux-x64": {
+        "url": "https://github.com/ollama/ollama/releases/download/v0.40.6/ollama-linux-amd64.tar.zst",
+        "sha256": "c164ab8b1b28e2a247c29719b8e404c423c5b83ae64c3ab4e59d50c7ff7fc5e0",
+        "archive": "tar.zst"
+      }
+    }
   },
   "profiles": [
     {
@@ -192,6 +224,100 @@
       "release": false,
       "verification_status": "candidate_requires_physical_8gb_windows",
       "source_url": "https://antigravitylocalmodels.com/"
+    },
+    {
+      "id": "macos-ollama-gemma4-e2b",
+      "install_folder": "gemma4-e2b",
+      "title": "Antigravity Local — macOS Ollama Gemma 4 E2B",
+      "os": "macOS Apple Silicon",
+      "platform": "macos",
+      "architecture": "arm64",
+      "route": "Ollama",
+      "model": "gemma4:e2b",
+      "model_label": "Gemma 4 E2B",
+      "min_ram_gb": 8,
+      "gpu_vendor": "apple-silicon",
+      "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e2b",
+      "app_overhead_gb": 2.5,
+      "fallback_required_gb": 8,
+      "priority": 200,
+      "verified": false,
+      "release": false,
+      "verification_status": "candidate_native_macos_e2e",
+      "source_url": "https://antigravitylocalmodels.com/"
+    },
+    {
+      "id": "linux-ollama-gemma4-e2b",
+      "install_folder": "gemma4-e2b",
+      "title": "Antigravity Local — Linux Ollama Gemma 4 E2B",
+      "os": "Linux x64",
+      "platform": "linux",
+      "architecture": "x64",
+      "route": "Ollama",
+      "model": "gemma4:e2b",
+      "model_label": "Gemma 4 E2B",
+      "min_ram_gb": 8,
+      "gpu_vendor": "any",
+      "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e2b",
+      "app_overhead_gb": 2.5,
+      "fallback_required_gb": 8,
+      "priority": 200,
+      "verified": false,
+      "release": false,
+      "verification_status": "candidate_native_linux_e2e",
+      "source_url": "https://antigravitylocalmodels.com/"
+    },
+    {
+      "id": "macos-litert-gemma4-26b",
+      "install_folder": "litert-gemma4-26b",
+      "title": "Antigravity Local — macOS LiteRT Gemma 4 26B",
+      "os": "macOS Apple Silicon",
+      "platform": "macos",
+      "architecture": "arm64",
+      "route": "LiteRT",
+      "model": "gemma4-26b",
+      "model_label": "Gemma 4 26B A4B LiteRT",
+      "min_ram_gb": 24,
+      "gpu_vendor": "apple-silicon",
+      "litert_hf_repo": "litert-community/gemma-4-26B-A4B-it-litert-lm",
+      "litert_source_file": "gemma-4-26B-A4B-it-web.litertlm",
+      "litert_backend": "gpu",
+      "litert_download_url": "https://huggingface.co/litert-community/gemma-4-26B-A4B-it-litert-lm/resolve/main/gemma-4-26B-A4B-it-web.litertlm?download=true",
+      "model_size_bytes": 15786524672,
+      "model_sha256": "4523b2de695a7f22dc675b716253ba9a8512ca9f4852fb6a682fe4c2eb859c16",
+      "app_overhead_gb": 3,
+      "fallback_required_gb": 18,
+      "priority": 600,
+      "verified": false,
+      "release": false,
+      "verification_status": "candidate_requires_24gb_apple_silicon",
+      "source_url": "https://www.antigravity.google/docs/sdk/local-models/"
+    },
+    {
+      "id": "linux-litert-gemma4-26b",
+      "install_folder": "litert-gemma4-26b",
+      "title": "Antigravity Local — Linux LiteRT Gemma 4 26B",
+      "os": "Linux x64",
+      "platform": "linux",
+      "architecture": "x64",
+      "route": "LiteRT",
+      "model": "gemma4-26b",
+      "model_label": "Gemma 4 26B A4B LiteRT",
+      "min_vram_gb": 24,
+      "gpu_vendor": "nvidia",
+      "litert_hf_repo": "litert-community/gemma-4-26B-A4B-it-litert-lm",
+      "litert_source_file": "gemma-4-26B-A4B-it-web.litertlm",
+      "litert_backend": "gpu",
+      "litert_download_url": "https://huggingface.co/litert-community/gemma-4-26B-A4B-it-litert-lm/resolve/main/gemma-4-26B-A4B-it-web.litertlm?download=true",
+      "model_size_bytes": 15786524672,
+      "model_sha256": "4523b2de695a7f22dc675b716253ba9a8512ca9f4852fb6a682fe4c2eb859c16",
+      "app_overhead_gb": 3,
+      "fallback_required_gb": 18,
+      "priority": 600,
+      "verified": false,
+      "release": false,
+      "verification_status": "candidate_requires_24gb_nvidia_linux",
+      "source_url": "https://www.antigravity.google/docs/sdk/local-models/"
     }
   ]
 }
