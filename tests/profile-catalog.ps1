@@ -34,13 +34,22 @@ foreach($p in $profiles){
 
 $routing=Get-Content (Join-Path $repoRoot 'catalog\package-routing.json') -Raw | ConvertFrom-Json
 foreach($rule in @($routing.rules)){
-    Assert-True ($ids.ContainsKey([string]$rule.profile_id)) ("Routing rule points to missing profile: "+[string]$rule.profile_id)
-    $target=@($profiles | Where-Object { [string]$_.id -eq [string]$rule.profile_id } | Select-Object -First 1)[0]
-    if([string]$rule.status -eq 'installer_available'){
-        Assert-True ($null -ne $target -and [bool]$target.verified) ("Released routing rule points to an unverified profile: "+[string]$rule.profile_id)
+    $status=[string]$rule.status
+    $profileId=[string]$rule.profile_id
+    $target=$null
+
+    if(-not[string]::IsNullOrWhiteSpace($profileId)){
+        Assert-True ($ids.ContainsKey($profileId)) ("Routing rule points to missing profile: "+$profileId)
+        $target=@($profiles | Where-Object { [string]$_.id -eq $profileId } | Select-Object -First 1)[0]
+    } else {
+        Assert-True ($status -eq 'unsupported_route' -or $status -eq 'pending_product_definition') ("Profile-less routing rule has an invalid status: "+[string]$rule.id)
     }
-    if([string]$rule.status -eq 'pending_validation'){
-        Assert-True ($null -ne $target -and -not [bool]$target.verified) ("Pending routing rule should point to an unverified profile: "+[string]$rule.profile_id)
+
+    if($status -eq 'installer_available'){
+        Assert-True ($null -ne $target -and [bool]$target.verified -and ($null -eq $target.release -or [bool]$target.release)) ("Released routing rule points to a non-released profile: "+$profileId)
+    }
+    if($status -eq 'pending_validation'){
+        Assert-True ($null -ne $target -and -not [bool]$target.verified) ("Pending validation rule should point to an unverified profile: "+$profileId)
     }
 }
 
@@ -60,6 +69,18 @@ Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'no_verified_installer') 'Win
 
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'pending_validation' -and $gpu24.profile_id -eq 'windows-litert-gemma4-26b') '24 GB automatic NVIDIA config should be tracked as pending LiteRT validation.'
+
+$mac16=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 16 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $mac16 -and $mac16.status -eq 'pending_product_definition' -and [string]::IsNullOrWhiteSpace([string]$mac16.profile_id)) 'macOS Apple Silicon 16 GB Automatic should be queued for an Ollama product definition.'
+
+$mac24=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $mac24 -and $mac24.status -eq 'pending_product_definition') 'macOS Apple Silicon 24 GB Automatic should be queued for a LiteRT product definition.'
+
+$linuxNvidia24=@($out.configurations | Where-Object { $_.os -eq 'linux' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $linuxNvidia24 -and $linuxNvidia24.status -eq 'pending_product_definition') 'Linux NVIDIA 24 GB Automatic should be queued for a LiteRT product definition.'
+
+$linuxAmdLiteRT=@($out.configurations | Where-Object { $_.os -eq 'linux' -and $_.graphics -eq 'amd' -and $_.runtime -eq 'litert' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $linuxAmdLiteRT -and $linuxAmdLiteRT.status -eq 'unsupported_route') 'Linux AMD LiteRT should be classified unsupported.'
 
 $gpu16LiteRT=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 16 -and $_.runtime -eq 'litert' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu16LiteRT -and $gpu16LiteRT.status -eq 'unsupported_route') 'NVIDIA below 24 GB with explicit LiteRT should be marked unsupported.'
