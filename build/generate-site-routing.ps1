@@ -24,6 +24,14 @@ function Match-Range($Value,$Match,[string]$MinName,[string]$MaxName){
     return $true
 }
 
+function Get-InstallerFile($Profile){
+    $platform=[string]$Profile.platform
+    if([string]::IsNullOrWhiteSpace($platform) -or $platform -eq 'windows'){ return ('profiles/'+[string]$Profile.id+'.exe') }
+    if($platform -eq 'macos'){ return ('profiles/'+[string]$Profile.id+'.pkg') }
+    if($platform -eq 'linux'){ return ('profiles/'+[string]$Profile.id+'.run') }
+    throw ('Unsupported release platform for '+[string]$Profile.id+': '+$platform)
+}
+
 function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime,$VramGb,$MemoryGb){
     $rule=@($routing.rules | Where-Object {
         @($_.match.os) -contains $Os -and
@@ -63,7 +71,7 @@ function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphi
         if($ruleStatus -eq 'installer_available'){
             if($null -ne $resolved.profile -and [bool]$resolved.profile.verified -and ($null -eq $resolved.profile.release -or [bool]$resolved.profile.release)){
                 $row.status='installer_available'
-                $row.installer_file=('profiles/'+[string]$resolved.profile.id+'.exe')
+                $row.installer_file=(Get-InstallerFile $resolved.profile)
             } else {
                 $row.status='pending_validation'
             }
