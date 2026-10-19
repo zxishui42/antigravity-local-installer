@@ -15,7 +15,9 @@ namespace AntigravityLocalApp
 {
     internal sealed class InstallState
     {
+        public string route { get; set; }
         public string model { get; set; }
+        public string model_path { get; set; }
         public string ollama { get; set; }
         public int port { get; set; }
     }
@@ -28,6 +30,8 @@ namespace AntigravityLocalApp
         private readonly string modelRoot;
         private readonly string ollama;
         private readonly string model;
+        private readonly string route;
+        private readonly string modelPath;
         private readonly int preferredPort;
         private Process server;
         private int activePort;
@@ -36,7 +40,6 @@ namespace AntigravityLocalApp
         {
             root = rootPath;
             python = Path.Combine(root, @"runtime\python\python.exe");
-            agent = Path.Combine(root, "local_agent.py");
             modelRoot = Path.Combine(root, "models");
             string statePath = Path.Combine(root, "install-state.json");
 
@@ -45,21 +48,32 @@ namespace AntigravityLocalApp
             InstallState state = serializer.Deserialize<InstallState>(File.ReadAllText(statePath));
             if (state == null) throw new InvalidDataException("Install state could not be read.");
 
+            route = String.IsNullOrWhiteSpace(state.route) ? "Ollama" : state.route;
             ollama = state.ollama;
             model = state.model;
+            modelPath = state.model_path;
             preferredPort = state.port > 0 ? state.port : 11435;
+            agent = Path.Combine(root, String.Equals(route, "LiteRT", StringComparison.OrdinalIgnoreCase) ? "litert_agent.py" : "local_agent.py");
 
             if (!File.Exists(python)) throw new FileNotFoundException("Private Python was not found.", python);
             if (!File.Exists(agent)) throw new FileNotFoundException("Antigravity agent was not found.", agent);
-            if (String.IsNullOrWhiteSpace(ollama) || !File.Exists(ollama)) throw new FileNotFoundException("Ollama was not found.", ollama);
-            if (String.IsNullOrWhiteSpace(model)) throw new InvalidDataException("Installed model id is missing.");
+            if (String.Equals(route, "LiteRT", StringComparison.OrdinalIgnoreCase))
+            {
+                if (String.IsNullOrWhiteSpace(modelPath) || !File.Exists(modelPath)) throw new FileNotFoundException("LiteRT model was not found.", modelPath);
+            }
+            else
+            {
+                if (String.IsNullOrWhiteSpace(ollama) || !File.Exists(ollama)) throw new FileNotFoundException("Ollama was not found.", ollama);
+                if (String.IsNullOrWhiteSpace(model)) throw new InvalidDataException("Installed model id is missing.");
+            }
         }
 
         public string Run(string prompt, Action<string> status, int timeoutMs)
         {
             if (String.IsNullOrWhiteSpace(prompt)) prompt = "Reply with only: OK";
             status("Starting local model...");
-            EnsureServer(timeoutMs > 60000 ? 60000 : timeoutMs);
+            bool isLiteRT = String.Equals(route, "LiteRT", StringComparison.OrdinalIgnoreCase);
+            if (!isLiteRT) EnsureServer(timeoutMs > 60000 ? 60000 : timeoutMs);
             status("Running model...");
 
             ProcessStartInfo psi = new ProcessStartInfo();
@@ -71,8 +85,16 @@ namespace AntigravityLocalApp
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;
             psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_PROMPT"] = prompt;
-            psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_MODEL"] = model;
-            psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_BASE_URL"] = "http://127.0.0.1:" + activePort.ToString() + "/v1";
+            if (isLiteRT)
+            {
+                psi.EnvironmentVariables["ANTIGRAVITY_LITERT_MODEL_PATH"] = modelPath;
+                psi.EnvironmentVariables["ANTIGRAVITY_LITERT_BACKEND"] = "gpu";
+            }
+            else
+            {
+                psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_MODEL"] = model;
+                psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_BASE_URL"] = "http://127.0.0.1:" + activePort.ToString() + "/v1";
+            }
 
             StringBuilder stdout = new StringBuilder();
             StringBuilder stderr = new StringBuilder();
