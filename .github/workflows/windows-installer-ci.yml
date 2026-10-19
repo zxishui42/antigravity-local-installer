@@ -30,10 +30,20 @@ jobs:
         shell: powershell
         run: .\\tests\\windows-endtoend.ps1
 
+      - name: Build single-file Windows installer
+        shell: powershell
+        run: .\\build\\build-bootstrapper.ps1
+
+      - name: Self-test single-file Windows installer
+        shell: powershell
+        run: .\\tests\\bootstrapper-selftest.ps1
+
       - name: Upload Windows-tested package
         if: success()
         uses: actions/upload-artifact@v4
         with:
-          name: antigravity-local-windows-e2b-ci
-          path: dist/antigravity-local-windows-e2b-ci.zip
+          name: antigravity-local-windows-e2b-tested
+          path: |
+            dist/AntigravityLocalSetup.exe
+            dist/antigravity-local-windows-e2b-ci.zip
           if-no-files-found: error
