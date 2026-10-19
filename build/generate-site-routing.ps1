@@ -34,7 +34,7 @@ function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime,$VramGb,
     } | Sort-Object @{Expression={[int]$_.priority};Descending=$true} | Select-Object -First 1)[0]
     if($null -eq $rule){ return $null }
     $profile=@($packages.profiles | Where-Object { [string]$_.id -eq [string]$rule.profile_id } | Select-Object -First 1)[0]
-    if($null -eq $profile -or -not [bool]$profile.verified){ return $null }
+    if($null -eq $profile){ return $null }
     return [pscustomobject]@{rule=$rule;profile=$profile}
 }
 
@@ -54,10 +54,16 @@ function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphi
         final_check='none'
     }
     if($null -ne $resolved){
-        $row.status=[string]$resolved.rule.status
         $row.profile_id=[string]$resolved.profile.id
-        $row.installer_file=('profiles/'+[string]$resolved.profile.id+'.exe')
         $row.final_check=[string]$resolved.rule.final_check
+        if([string]$resolved.rule.status -eq 'installer_available' -and [bool]$resolved.profile.verified){
+            $row.status='installer_available'
+            $row.installer_file=('profiles/'+[string]$resolved.profile.id+'.exe')
+        } elseif([string]$resolved.rule.status -eq 'pending_validation' -or -not [bool]$resolved.profile.verified){
+            $row.status='pending_validation'
+        } else {
+            $row.status=[string]$resolved.rule.status
+        }
     }
     [void]$Rows.Add([pscustomobject]$row)
 }
@@ -110,7 +116,8 @@ $result=[ordered]@{
     generated_utc=(Get-Date).ToUniversalTime().ToString('o')
     configuration_count=$rows.Count
     installer_available_count=@($rows | Where-Object { $_.status -eq 'installer_available' }).Count
-    no_verified_installer_count=@($rows | Where-Object { $_.status -ne 'installer_available' }).Count
+    pending_validation_count=@($rows | Where-Object { $_.status -eq 'pending_validation' }).Count
+    no_verified_installer_count=@($rows | Where-Object { $_.status -eq [string]$routing.default_status }).Count
     configurations=@($rows)
 }
 $result | ConvertTo-Json -Depth 12 | Set-Content $out -Encoding UTF8
@@ -120,6 +127,7 @@ $coverage=[ordered]@{
     generated_utc=$result.generated_utc
     configuration_count=$result.configuration_count
     installer_available_count=$result.installer_available_count
+    pending_validation_count=$result.pending_validation_count
     no_verified_installer_count=$result.no_verified_installer_count
     by_os=@()
     by_graphics=@()
@@ -127,13 +135,13 @@ $coverage=[ordered]@{
     by_profile=@()
 }
 foreach($g in @($rows | Group-Object os)){
-    $coverage.by_os += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count}
+    $coverage.by_os += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count}
 }
 foreach($g in @($rows | Group-Object graphics)){
-    $coverage.by_graphics += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count}
+    $coverage.by_graphics += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count}
 }
 foreach($g in @($rows | Group-Object runtime)){
-    $coverage.by_runtime += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count}
+    $coverage.by_runtime += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count;pending_validation=@($g.Group|Where-Object{$_.status -eq 'pending_validation'}).Count}
 }
 foreach($g in @($rows | Where-Object{$_.status -eq 'installer_available'} | Group-Object profile_id)){
     $coverage.by_profile += [pscustomobject]@{name=$g.Name;configuration_count=$g.Count}
@@ -143,6 +151,7 @@ $coverage | ConvertTo-Json -Depth 12 | Set-Content $coverageOut -Encoding UTF8
 
 Write-Host ("Generated "+$rows.Count+" website configuration routes.")
 Write-Host ("Installer available: "+$result.installer_available_count)
+Write-Host ("Pending validation: "+$result.pending_validation_count)
 Write-Host ("No verified installer yet: "+$result.no_verified_installer_count)
 Write-Host ("Routing table: "+$out)
 Write-Host ("Coverage report: "+$coverageOut)
