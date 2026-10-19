@@ -3,7 +3,7 @@ $ErrorActionPreference='Stop'
 $repoRoot=(Resolve-Path (Join-Path $PSScriptRoot '..')).Path
 $catalogPath=Join-Path $repoRoot 'src\_internal\pack.json'
 $catalog=Get-Content $catalogPath -Raw | ConvertFrom-Json
-$profiles=@($catalog.profiles | Where-Object { [bool]$_.verified })
+$profiles=@($catalog.profiles | Where-Object { [bool]$_.verified -and ($null -eq $_.release -or [bool]$_.release) -and ([string]::IsNullOrWhiteSpace([string]$_.platform) -or [string]$_.platform -eq 'windows') })
 
 if($profiles.Count -eq 0){ throw 'No verified installer profiles are available to build.' }
 
