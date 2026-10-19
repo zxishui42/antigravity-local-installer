@@ -72,4 +72,8 @@ jobs:
         run: |
           python -m py_compile build/build-unix-profile.py
           python -m py_compile build/build-native-package.py
+          python -m py_compile build/build-native-release.py
+          python -m py_compile build/merge-release-catalog.py
+          python -m py_compile build/generate-download-manifest.py
           python -m py_compile build/promote-profile.py
+          python -m py_compile tests/release-catalog.py
