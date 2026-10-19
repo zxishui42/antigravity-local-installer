@@ -6,6 +6,7 @@ on:
     branches: [main]
   push:
     branches:
+      - main
       - production-line-cross-platform
     paths:
       - 'src/unix/**'
