@@ -80,6 +80,9 @@ jobs:
       - name: Verify every released website route has a package
         shell: bash
         run: python3 tests/release-catalog.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json
+      - name: Generate website download manifest
+        shell: bash
+        run: python3 build/generate-download-manifest.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json --output dist/site-download-manifest.json
       - uses: actions/upload-artifact@v4
         with:
           name: global-installer-release-catalog
@@ -88,4 +91,5 @@ jobs:
             dist/site-installer-routing.json
             dist/site-installer-coverage.json
             dist/installer-work-queue.json
+            dist/site-download-manifest.json
           if-no-files-found: error
