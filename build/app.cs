@@ -71,6 +71,8 @@ namespace AntigravityLocalApp
             psi.RedirectStandardOutput = true;
             psi.RedirectStandardError = true;
             psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_PROMPT"] = prompt;
+            psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_MODEL"] = model;
+            psi.EnvironmentVariables["ANTIGRAVITY_LOCAL_BASE_URL"] = "http://127.0.0.1:" + activePort.ToString() + "/v1";
 
             StringBuilder stdout = new StringBuilder();
             StringBuilder stderr = new StringBuilder();
