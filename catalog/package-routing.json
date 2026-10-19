@@ -117,16 +117,91 @@
       "profile_id": "windows-ollama-gemma4-e2b",
       "status": "installer_available",
       "final_check": "installer"
+    },
+    {
+      "id": "windows-nvidia-litert-under24-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "litert"
+        ],
+        "max_vram_gb": 23
+      },
+      "profile_id": "windows-litert-gemma4-26b",
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "windows-amd-litert-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "amd"
+        ],
+        "runtime": [
+          "litert"
+        ]
+      },
+      "profile_id": "windows-litert-gemma4-26b",
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "windows-cpu-litert-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "litert"
+        ]
+      },
+      "profile_id": "windows-litert-gemma4-26b",
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "windows-cpu-8gb-ollama-pending",
+      "priority": 240,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "automatic",
+          "ollama"
+        ],
+        "min_memory_gb": 8,
+        "max_memory_gb": 8
+      },
+      "profile_id": "windows-ollama-gemma4-e2b-cpu-8gb",
+      "status": "pending_validation",
+      "final_check": "physical_windows_8gb"
     }
   ],
   "default_status": "no_verified_installer",
   "notes": [
-    "Windows CPU-only 8 GB stays no_verified_installer because no paid package has been validated for that RAM class.",
-    "Windows CPU-only 16 GB routes to the smaller E4B QAT profile; 32 GB and above routes to the validated 12B QAT profile.",
-    "Automatic GPU configurations at 24 GB VRAM or above are intentionally not mapped to Ollama because the live site points that tier toward LiteRT.",
-    "Explicit Ollama GPU configurations below or above 24 GB use the verified E2B package for now; the installer rechecks actual Windows RAM before making changes.",
-    "A configuration is only marked installer_available when its target profile is verified.",
-    "Windows NVIDIA 24 GB+ LiteRT combinations are tracked as pending_validation until the full package passes on a physical supported NVIDIA machine; they are not released or sold as an installer yet.",
-    "Live-site checks confirmed Windows AMD 24/32/48 GB Automatic stays on Ollama, so AMD Automatic does not switch to LiteRT at 24 GB."
+    "Windows NVIDIA 24 GB+ Automatic/LiteRT uses the LiteRT 26B route only after physical 24 GB+ NVIDIA validation; until then it remains pending_validation.",
+    "Windows NVIDIA below 24 GB, AMD, and CPU-only selections with Runtime=LiteRT are unsupported by the live checker and should be redirected to Ollama rather than treated as missing installer work.",
+    "Windows CPU-only 8 GB Automatic/Ollama is tracked as pending validation, not released.",
+    "Windows CPU-only 16–31 GB routes to E4B QAT; 32 GB+ routes to 12B QAT.",
+    "Windows AMD Automatic and Windows NVIDIA Automatic below 24 GB route to the verified Ollama E2B package.",
+    "Released routing rules only point to verified profiles."
   ]
 }
