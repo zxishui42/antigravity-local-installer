@@ -1,0 +1,36 @@
+name: Native Ollama real-model validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/native-ollama-real-model-validation.yml'
+
+concurrency:
+  group: native-ollama-real-model-validation
+  cancel-in-progress: true
+
+jobs:
+  real-model:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            profile: macos-ollama-gemma4-e2b
+            port: 11541
+          - os: ubuntu-latest
+            profile: linux-ollama-gemma4-e2b
+            port: 11542
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run full native install with production Gemma 4 E2B
+        shell: bash
+        env:
+          ANTIGRAVITY_E2E_MODEL: gemma4:e2b
+          ANTIGRAVITY_TEST_PORT: ${{ matrix.port }}
+        run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
