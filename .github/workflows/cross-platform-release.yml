@@ -1,0 +1,91 @@
+name: Cross-platform installer release catalog
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/cross-platform-release.yml'
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build released Windows profiles
+        shell: powershell
+        run: |
+          .\build\build-all-profiles.ps1
+          Copy-Item dist\installer-catalog.json dist\platform-catalog-windows.json -Force
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-windows
+          path: |
+            dist/platform-catalog-windows.json
+            dist/profiles/*.exe
+          if-no-files-found: error
+
+  macos:
+    runs-on: macos-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build released macOS profiles
+        run: python3 build/build-native-release.py --platform macos --output-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-macos
+          path: |
+            dist/platform-catalog-macos.json
+            dist/profiles/*.pkg
+          if-no-files-found: warn
+
+  linux:
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build released Linux profiles
+        run: python3 build/build-native-release.py --platform linux --output-dir dist
+      - uses: actions/upload-artifact@v4
+        with:
+          name: release-linux
+          path: |
+            dist/platform-catalog-linux.json
+            dist/profiles/*.run
+          if-no-files-found: warn
+
+  aggregate:
+    needs: [windows, macos, linux]
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          pattern: release-*
+          path: collected
+      - name: Merge platform catalogs
+        shell: bash
+        run: |
+          python3 build/merge-release-catalog.py \
+            --catalog collected/release-windows/platform-catalog-windows.json \
+            --catalog collected/release-macos/platform-catalog-macos.json \
+            --catalog collected/release-linux/platform-catalog-linux.json \
+            --output dist/installer-catalog.json
+      - name: Generate website routing
+        shell: pwsh
+        run: ./build/generate-site-routing.ps1
+      - name: Verify every released website route has a package
+        shell: bash
+        run: python3 tests/release-catalog.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json
+      - uses: actions/upload-artifact@v4
+        with:
+          name: global-installer-release-catalog
+          path: |
+            dist/installer-catalog.json
+            dist/site-installer-routing.json
+            dist/site-installer-coverage.json
+            dist/installer-work-queue.json
+          if-no-files-found: error
