@@ -193,6 +193,289 @@
       "profile_id": "windows-ollama-gemma4-e2b-cpu-8gb",
       "status": "pending_validation",
       "final_check": "physical_windows_8gb"
+    },
+    {
+      "id": "macos-apple-auto-litert-24plus",
+      "priority": 500,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "min_memory_gb": 24
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_macos_litert_package"
+    },
+    {
+      "id": "macos-apple-explicit-litert-24plus",
+      "priority": 500,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "litert"
+        ],
+        "min_memory_gb": 24
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_macos_litert_package"
+    },
+    {
+      "id": "macos-apple-litert-under24-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "litert"
+        ],
+        "max_memory_gb": 23
+      },
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "macos-apple-ollama",
+      "priority": 200,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "ollama"
+        ]
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_macos_ollama_package"
+    },
+    {
+      "id": "macos-apple-auto-ollama-under24",
+      "priority": 250,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "max_memory_gb": 23
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_macos_ollama_package"
+    },
+    {
+      "id": "macos-cpu-litert-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "litert"
+        ]
+      },
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "macos-cpu-ollama",
+      "priority": 200,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "automatic",
+          "ollama"
+        ]
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_macos_ollama_package"
+    },
+    {
+      "id": "linux-nvidia-auto-litert-24plus",
+      "priority": 500,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "min_vram_gb": 24
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_linux_litert_package"
+    },
+    {
+      "id": "linux-nvidia-explicit-litert-24plus",
+      "priority": 500,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "litert"
+        ],
+        "min_vram_gb": 24
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_linux_litert_package"
+    },
+    {
+      "id": "linux-nvidia-litert-under24-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "litert"
+        ],
+        "max_vram_gb": 23
+      },
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "linux-nvidia-ollama",
+      "priority": 200,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "ollama"
+        ]
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_linux_ollama_package"
+    },
+    {
+      "id": "linux-nvidia-auto-ollama-under24",
+      "priority": 250,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "max_vram_gb": 23
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_linux_ollama_package"
+    },
+    {
+      "id": "linux-amd-litert-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "amd"
+        ],
+        "runtime": [
+          "litert"
+        ]
+      },
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "linux-amd-ollama",
+      "priority": 200,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "amd"
+        ],
+        "runtime": [
+          "automatic",
+          "ollama"
+        ]
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_linux_ollama_package"
+    },
+    {
+      "id": "linux-cpu-litert-unsupported",
+      "priority": 700,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "litert"
+        ]
+      },
+      "status": "unsupported_route",
+      "final_check": "use_ollama_instead"
+    },
+    {
+      "id": "linux-cpu-ollama",
+      "priority": 200,
+      "match": {
+        "os": [
+          "linux"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "automatic",
+          "ollama"
+        ]
+      },
+      "status": "pending_product_definition",
+      "final_check": "build_linux_ollama_package"
     }
   ],
   "default_status": "no_verified_installer",
@@ -202,6 +485,9 @@
     "Windows CPU-only 8 GB Automatic/Ollama is tracked as pending validation, not released.",
     "Windows CPU-only 16–31 GB routes to E4B QAT; 32 GB+ routes to 12B QAT.",
     "Windows AMD Automatic and Windows NVIDIA Automatic below 24 GB route to the verified Ollama E2B package.",
-    "Released routing rules only point to verified profiles."
+    "Released routing rules only point to verified profiles.",
+    "macOS Apple Silicon Automatic uses LiteRT at 24 GB+ unified memory and Ollama below 24 GB, matching the live checker; packages are not released yet.",
+    "Linux NVIDIA Automatic uses LiteRT at 24 GB+ VRAM and Ollama below 24 GB; Linux AMD and CPU-only use Ollama. Cross-platform packages remain pending product definition.",
+    "Explicit LiteRT selections that the live checker rejects are classified unsupported_route instead of being counted as missing installer work."
   ]
 }
