@@ -145,7 +145,33 @@
       "source_url": "https://www.antigravity.google/docs/sdk/local-models/",
       "litert_download_url": "https://huggingface.co/litert-community/gemma-4-26B-A4B-it-litert-lm/resolve/main/gemma-4-26B-A4B-it-gpu.litertlm?download=true",
       "model_size_bytes": 15786524672,
-      "model_sha256": "94bbde2453dd9b67c61c16017af331e5841cbbd9edf83bd2f84bc73e2a7cbdb1"
+      "model_sha256": "94bbde2453dd9b67c61c16017af331e5841cbbd9edf83bd2f84bc73e2a7cbdb1",
+      "litert_backend": "gpu"
+    },
+    {
+      "id": "ci-windows-litert-gemma4-e2b-cpu",
+      "install_folder": "ci-litert-gemma4-e2b",
+      "title": "CI only — Antigravity LiteRT Gemma 4 E2B CPU",
+      "os": "Windows 10/11 x64",
+      "route": "LiteRT",
+      "model": "gemma4-e2b",
+      "model_label": "Gemma 4 E2B LiteRT CI",
+      "gpu_vendor": "cpu-only",
+      "min_ram_gb": 16,
+      "litert_hf_repo": "litert-community/gemma-4-E2B-it-litert-lm",
+      "litert_source_file": "gemma-4-E2B-it.litertlm",
+      "litert_download_url": "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm?download=true",
+      "litert_registered_name": "gemma4-e2b-ci",
+      "litert_backend": "cpu",
+      "model_size_bytes": 2588147712,
+      "model_sha256": "181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
+      "app_overhead_gb": 3,
+      "fallback_required_gb": 6,
+      "priority": 50,
+      "verified": false,
+      "release": false,
+      "verification_status": "internal_ci_only",
+      "source_url": "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm"
     }
   ]
 }
