@@ -357,22 +357,38 @@ try {
     $os=Get-CimInstance Win32_OperatingSystem;if([int]$os.BuildNumber -lt [int]$Pack.min_windows_build){Fail 'This Windows version is too old for the current local runtime.' "Windows build $($Pack.min_windows_build) or newer is required."}
     $ram=$DetectedRamGb;if($ram -lt [int]$Pack.min_ram_gb){Fail 'This PC does not have enough memory.' "Detected: $ram GB. Required: at least $($Pack.min_ram_gb) GB."}
     $driveName=$TargetDrive.TrimEnd(':');$drive=Get-PSDrive -Name $driveName -ErrorAction Stop
-    $manifestBytes=0L;try{$manifestBytes=Get-ManifestBytes}catch{$manifestBytes=[long](([double]$Pack.fallback_required_gb-[double]$Pack.app_overhead_gb)*1GB)}
-    $totalTargetBytes=[long]($manifestBytes+([double]$Pack.app_overhead_gb*1GB));$existingBytes=[long](FolderBytes $InstallRoot);$additionalBytes=[long]($totalTargetBytes-$existingBytes);if($additionalBytes -lt 512MB){$additionalBytes=512MB}
+    $isLiteRT=([string]$Pack.route -eq 'LiteRT')
+    if($isLiteRT){$modelBytes=[long]$Pack.model_size_bytes}else{try{$modelBytes=Get-ManifestBytes}catch{$modelBytes=[long](([double]$Pack.fallback_required_gb-[double]$Pack.app_overhead_gb)*1GB)}}
+    $totalTargetBytes=[long]($modelBytes+([double]$Pack.app_overhead_gb*1GB));$existingBytes=[long](FolderBytes $InstallRoot);$additionalBytes=[long]($totalTargetBytes-$existingBytes);if($additionalBytes -lt 512MB){$additionalBytes=512MB}
     $needed=[Math]::Round(([double]$additionalBytes/1GB),1);$free=[Math]::Round(([double]$drive.Free/1GB),1);Status 'Checking storage' "About $needed GB more is needed on $TargetDrive." "$free GB is free on the selected drive." 12;if([double]$free -lt [double]$needed){Fail 'There is not enough space on the selected drive.' "$TargetDrive has $free GB free. This attempt needs about $needed GB more. Choose another drive or free some space."}
-    try{Get-ManifestBytes|Out-Null;Invoke-WebRequest -UseBasicParsing -Method Head -Uri $Pack.python_embed_url -TimeoutSec 20|Out-Null;Invoke-WebRequest -UseBasicParsing -Method Head -Uri 'https://pypi.org/simple/google-antigravity/' -TimeoutSec 20|Out-Null}catch{Fail 'A required download server could not be reached.' 'Check the internet connection, VPN, or proxy, then try again.'}
+    try{
+        Invoke-WebRequest -UseBasicParsing -Method Head -Uri $Pack.python_embed_url -TimeoutSec 20|Out-Null
+        Invoke-WebRequest -UseBasicParsing -Method Head -Uri 'https://pypi.org/simple/google-antigravity/' -TimeoutSec 20|Out-Null
+        if($isLiteRT){Invoke-WebRequest -UseBasicParsing -Method Head -Uri ([string]$Pack.litert_download_url) -TimeoutSec 30|Out-Null;Invoke-WebRequest -UseBasicParsing -Method Head -Uri 'https://pypi.org/simple/litert-lm/' -TimeoutSec 20|Out-Null}else{Get-ManifestBytes|Out-Null}
+    }catch{Fail 'A required download server could not be reached.' 'Check the internet connection, VPN, or proxy, then try again.'}
     New-Item -ItemType Directory -Force -Path $InstallRoot|Out-Null
-    $ollama=Find-Ollama
-    if(-not$ollama){Status 'Installing Ollama' 'Installing the local model runtime.' 'The large model files will still be saved to the drive you selected.' 20;$installScript=Join-Path $RunRoot 'ollama-install.ps1';Download-File 'https://ollama.com/install.ps1' $installScript 'Installing Ollama';$ollamaInstallCode=Invoke-NativeLogged 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File',$installScript);if($ollamaInstallCode -ne 0){throw 'Ollama could not be installed.'};Start-Sleep 2;$env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User');$ollama=Find-Ollama;if(-not$ollama){throw 'Ollama was installed but ollama.exe was not found.'}}else{Status 'Checking Ollama' 'Using the Ollama program already on this PC.' 'Its existing models are left alone.' 20}
-    Log ('Ollama executable: '+$ollama)
     Ensure-PortablePython;Install-Antigravity
-    Set-PrivateEndpoint (Choose-PrivatePort);Start-PrivateOllama $ollama
-    if(-not(PrivateModelExists)){Pull-Model $ollama $manifestBytes}else{Status 'Model found' 'The model is already present in this private setup.' 'No download is needed.' 60}
-    Write-AgentFile;$vram=Test-Model;Test-Antigravity;Write-UserLauncher $ollama;Register-Uninstaller
-    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;model=$Pack.model;model_label=$Pack.model_label;installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$PrivatePort;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
-    Stop-PrivateOllama
-    $accel=if($vram -gt 0){'GPU acceleration was detected.'}else{'The setup works. GPU acceleration was not detected in this test, so it may run more slowly.'}
+    $ollama='';$vram=0L
+    if($isLiteRT){
+        Download-LiteRTModel
+        Write-LiteRTAgentFile
+        Test-LiteRTAntigravity
+        Write-UserLauncher ''
+    } else {
+        $ollama=Find-Ollama
+        if(-not$ollama){Status 'Installing Ollama' 'Installing the local model runtime.' 'The large model files will still be saved to the drive you selected.' 20;$installScript=Join-Path $RunRoot 'ollama-install.ps1';Download-File 'https://ollama.com/install.ps1' $installScript 'Installing Ollama';$ollamaInstallCode=Invoke-NativeLogged 'powershell.exe' @('-NoProfile','-ExecutionPolicy','Bypass','-WindowStyle','Hidden','-File',$installScript);if($ollamaInstallCode -ne 0){throw 'Ollama could not be installed.'};Start-Sleep 2;$env:Path=[Environment]::GetEnvironmentVariable('Path','Machine')+';'+[Environment]::GetEnvironmentVariable('Path','User');$ollama=Find-Ollama;if(-not$ollama){throw 'Ollama was installed but ollama.exe was not found.'}}else{Status 'Checking Ollama' 'Using the Ollama program already on this PC.' 'Its existing models are left alone.' 20}
+        Log ('Ollama executable: '+$ollama)
+        Set-PrivateEndpoint (Choose-PrivatePort);Start-PrivateOllama $ollama
+        if(-not(PrivateModelExists)){Pull-Model $ollama $modelBytes}else{Status 'Model found' 'The model is already present in this private setup.' 'No download is needed.' 60}
+        Write-OllamaAgentFile;$vram=Test-Model;Test-Antigravity;Write-UserLauncher $ollama
+    }
+    Register-Uninstaller
+    $modelPathValue=if($isLiteRT){$LiteRTModelFile}else{''}
+    $portValue=if($isLiteRT){0}else{$PrivatePort}
+    $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;route=$Pack.route;model=$Pack.model;model_label=$Pack.model_label;model_path=$modelPathValue;installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$portValue;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
+    if(-not$isLiteRT){Stop-PrivateOllama}
+    $accel=if($isLiteRT){'The LiteRT GPU installation test passed.'}elseif($vram -gt 0){'GPU acceleration was detected.'}else{'The setup works. GPU acceleration was not detected in this test, so it may run more slowly.'}
     Status 'Installation complete' 'The local setup is ready.' ("Installed setup: "+[string]$Pack.model_label+". "+$accel+" Files are stored on "+$TargetDrive+". Use the Installation Test shortcut to verify it again later.") 100 'success'
 } catch {
-    Log ('ERROR: '+$_.Exception.ToString());Stop-PrivateOllama;Fail 'The installation could not continue.' 'No manual commands are required. Click Copy details to send the technical log to support.'
+    Log ('ERROR: '+$_.Exception.ToString());if([string]$Pack.route -ne 'LiteRT'){Stop-PrivateOllama};Fail 'The installation could not continue.' 'No manual commands are required. Click Copy details to send the technical log to support.'
 }
