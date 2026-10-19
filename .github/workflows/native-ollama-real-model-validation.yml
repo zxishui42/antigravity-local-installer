@@ -18,13 +18,15 @@ jobs:
       matrix:
         include:
           - os: macos-latest
+            platform: macos
             profile: macos-ollama-gemma4-e2b
             port: 11541
           - os: ubuntu-latest
+            platform: linux
             profile: linux-ollama-gemma4-e2b
             port: 11542
     runs-on: ${{ matrix.os }}
-    timeout-minutes: 60
+    timeout-minutes: 70
     steps:
       - uses: actions/checkout@v4
 
@@ -34,3 +36,32 @@ jobs:
           ANTIGRAVITY_E2E_MODEL: gemma4:e2b
           ANTIGRAVITY_TEST_PORT: ${{ matrix.port }}
         run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
+
+      - name: Build native production package
+        shell: bash
+        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native-real
+
+      - name: Execute final Linux .run package against the validated private install
+        if: matrix.platform == 'linux'
+        shell: bash
+        env:
+          ANTIGRAVITY_INSTALL_ROOT: ${{ runner.temp }}/antigravity-unix-e2e-${{ matrix.profile }}
+          ANTIGRAVITY_TEST_PORT: 11543
+        run: |
+          chmod +x "dist/native-real/${{ matrix.profile }}.run"
+          "dist/native-real/${{ matrix.profile }}.run"
+          python3 - <<'PY'
+          import json, os
+          path=os.path.join(os.environ["ANTIGRAVITY_INSTALL_ROOT"],"install-state.json")
+          data=json.load(open(path))
+          assert data["profile"]=="linux-ollama-gemma4-e2b", data
+          assert data["model"]=="gemma4:e2b", data
+          print("FINAL LINUX RUN PACKAGE PASSED")
+          PY
+
+      - name: Verify macOS pkg was built
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          test -s "dist/native-real/${{ matrix.profile }}.pkg"
+          pkgutil --payload-files "dist/native-real/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
