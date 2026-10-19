@@ -36,7 +36,12 @@ $routing=Get-Content (Join-Path $repoRoot 'catalog\package-routing.json') -Raw |
 foreach($rule in @($routing.rules)){
     Assert-True ($ids.ContainsKey([string]$rule.profile_id)) ("Routing rule points to missing profile: "+[string]$rule.profile_id)
     $target=@($profiles | Where-Object { [string]$_.id -eq [string]$rule.profile_id } | Select-Object -First 1)[0]
-    Assert-True ($null -ne $target -and [bool]$target.verified) ("Routing rule points to an unverified profile: "+[string]$rule.profile_id)
+    if([string]$rule.status -eq 'installer_available'){
+        Assert-True ($null -ne $target -and [bool]$target.verified) ("Released routing rule points to an unverified profile: "+[string]$rule.profile_id)
+    }
+    if([string]$rule.status -eq 'pending_validation'){
+        Assert-True ($null -ne $target -and -not [bool]$target.verified) ("Pending routing rule should point to an unverified profile: "+[string]$rule.profile_id)
+    }
 }
 
 & (Join-Path $repoRoot 'build\generate-site-routing.ps1')
@@ -54,6 +59,6 @@ $cpu8=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphic
 Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'no_verified_installer') 'Windows CPU-only 8 GB must stay unverified.'
 
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'no_verified_installer') '24 GB automatic GPU config should remain reserved until LiteRT is verified.'
+Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'pending_validation' -and $gpu24.profile_id -eq 'windows-litert-gemma4-26b') '24 GB automatic NVIDIA config should be tracked as pending LiteRT validation.'
 
 Write-Host ("PROFILE / ROUTING CATALOG PASSED: "+$out.configuration_count+" configurations, "+$out.installer_available_count+" installer-ready.")
