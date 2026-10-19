@@ -136,13 +136,16 @@
       "litert_hf_repo": "litert-community/gemma-4-26B-A4B-it-litert-lm",
       "litert_source_file": "gemma-4-26B-A4B-it-gpu.litertlm",
       "litert_registered_name": "gemma4-26b",
-      "download_size_gb": 16.8,
+      "download_size_gb": 14.7,
       "app_overhead_gb": 3,
-      "fallback_required_gb": 20,
+      "fallback_required_gb": 18,
       "priority": 600,
       "verified": false,
       "verification_status": "candidate_requires_physical_nvidia_24gb",
-      "source_url": "https://www.antigravity.google/docs/sdk/local-models/"
+      "source_url": "https://www.antigravity.google/docs/sdk/local-models/",
+      "litert_download_url": "https://huggingface.co/litert-community/gemma-4-26B-A4B-it-litert-lm/resolve/main/gemma-4-26B-A4B-it-gpu.litertlm?download=true",
+      "model_size_bytes": 15786524672,
+      "model_sha256": "94bbde2453dd9b67c61c16017af331e5841cbbd9edf83bd2f84bc73e2a7cbdb1"
     }
   ]
 }
