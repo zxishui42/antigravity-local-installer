@@ -77,3 +77,9 @@ jobs:
           python -m py_compile build/generate-download-manifest.py
           python -m py_compile build/promote-profile.py
           python -m py_compile tests/release-catalog.py
+
+      - name: Check website installer resolver
+        shell: bash
+        run: |
+          node --check web/installer-resolver.js
+          node tests/installer-resolver.mjs
