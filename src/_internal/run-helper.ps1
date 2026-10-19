@@ -1,5 +1,3 @@
-$ErrorActionPreference='Stop'
-
 param(
     [Parameter(Mandatory=$true)][string]$Python,
     [Parameter(Mandatory=$true)][string]$Agent,
@@ -14,6 +12,7 @@ param(
     [Parameter(Mandatory=$true)][string]$StatusFile
 )
 
+$ErrorActionPreference='Stop'
 $ApiBase="http://$HostValue"
 
 function Set-RunStatus([string]$Text){
