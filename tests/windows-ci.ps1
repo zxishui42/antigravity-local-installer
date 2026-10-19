@@ -78,7 +78,7 @@ Assert-True ((Get-Content $err -Raw) -match 'WARNING') 'Child stderr warning mis
 Write-Host '5) Regression: production Antigravity test uses sidecar, not parent ExitCode'
 $worker=Get-Content '_internal/worker.ps1' -Raw
 $testStart=$worker.IndexOf('function Test-Antigravity {')
-$testEnd=$worker.IndexOf('function Write-UserLauncher',$testStart)
+$testEnd=$worker.IndexOf('function Download-LiteRTModel',$testStart)
 Assert-True ($testStart -ge 0 -and $testEnd -gt $testStart) 'Test-Antigravity block missing.'
 $testBlock=$worker.Substring($testStart,$testEnd-$testStart)
 Assert-True ($testBlock.Contains('$codeFile=')) 'Antigravity test has no status sidecar.'
@@ -97,6 +97,9 @@ Assert-True ($worker.Contains('OLLAMA_MODELS')) 'Private model directory isolati
 Assert-True ($worker.Contains('download_stall_seconds')) 'Download stall handling missing.'
 Assert-True ($worker.Contains('nvidia-smi')) 'NVIDIA VRAM recheck is missing.'
 Assert-True ($worker.Contains('min_vram_gb')) 'Profile VRAM floor is not enforced.'
+Assert-True ($worker.Contains("[string]`$Pack.route -eq 'LiteRT'")) 'LiteRT route branch is missing.'
+Assert-True ($worker.Contains('Download-LiteRTModel')) 'LiteRT model download path is missing.'
+Assert-True (Test-Path '_internal/litert_agent.py') 'LiteRT agent template is missing.'
 Assert-True ($worker.Contains('Test-ProfileMatch')) 'Installer is not profile-driven.'
 Assert-True ($worker.Contains('$Config.profiles')) 'Installer does not read configured profiles.'
 Assert-True ($worker.Contains('$Pack.install_folder')) 'Install folder is still hardcoded.'
