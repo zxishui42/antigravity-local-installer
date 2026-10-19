@@ -10,7 +10,7 @@ def main():
     items=[]
     ids=set(); files=set()
     for name in args.catalog:
-        data=json.loads(Path(name).read_text())
+        data=json.loads(Path(name).read_text(encoding="utf-8-sig"))
         for item in data.get("installers",[]):
             pid=item["id"]; fn=item["installer_file"]
             if pid in ids: raise SystemExit(f"Duplicate profile id across platform catalogs: {pid}")
