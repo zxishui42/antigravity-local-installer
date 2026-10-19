@@ -68,6 +68,11 @@ jobs:
         shell: powershell
         run: .\build\generate-site-routing.ps1
 
+      - name: Verify release catalog matches website routing
+        if: success()
+        shell: powershell
+        run: .\tests\release-catalog.ps1
+
       - name: Upload installer production catalog
         if: success()
         uses: actions/upload-artifact@v4
