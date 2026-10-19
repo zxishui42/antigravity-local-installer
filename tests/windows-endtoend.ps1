@@ -34,7 +34,7 @@ $installRoot='D:\AntigravityLocal\gemma4-e2b'
 Remove-Item 'D:\AntigravityLocal' -Recurse -Force -ErrorAction SilentlyContinue
 
 $desktop=[Environment]::GetFolderPath('Desktop')
-$shortcutPath=Join-Path $desktop 'Antigravity Local.lnk'
+$shortcutPath=Join-Path $desktop 'Antigravity Installation Test.lnk'
 Remove-Item $shortcutPath -Force -ErrorAction SilentlyContinue
 Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\AntigravityLocal-gemma4-e2b' -Recurse -Force -ErrorAction SilentlyContinue
 
