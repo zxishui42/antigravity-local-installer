@@ -87,28 +87,20 @@ if(Test-Path (Join-Path $run1 'install.log')){
 Assert-True ($code1 -eq 0) "Recovered worker returned exit code $code1"
 Assert-True ($status1 -and $status1.state -eq 'success') 'Recovered install did not finish in success state.'
 Assert-True (Test-Path (Join-Path $installRoot 'install-state.json')) 'Install state file missing after recovery.'
-Assert-True (Test-Path (Join-Path $installRoot 'local-ui.ps1')) 'Installed app UI script missing.'
+Assert-True (Test-Path (Join-Path $installRoot 'AntigravityLocal.exe')) 'Installed app executable missing.'
 Assert-True (Test-Path $shortcutPath) 'Desktop shortcut missing.'
 Assert-True (Test-Path 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\AntigravityLocal-gemma4-e2b') 'Uninstall registry entry missing.'
 Assert-True (Test-Path $userModelSentinel) 'Existing-user-model sentinel was removed.'
 
-Write-Host 'B2) Validate the installed app launcher'
-$uiPath=Join-Path $installRoot 'local-ui.ps1'
-$tokens=$null
-$parseErrors=$null
-[void][System.Management.Automation.Language.Parser]::ParseFile($uiPath,[ref]$tokens,[ref]$parseErrors)
-Assert-True ($parseErrors.Count -eq 0) ('Installed local-ui.ps1 parse errors: '+(($parseErrors|ForEach-Object Message)-join '; '))
-
-$uiTest=Start-Process -FilePath 'powershell.exe' -ArgumentList @(
-  '-NoProfile','-ExecutionPolicy','Bypass','-File',$uiPath,'-SelfTest'
-) -PassThru -Wait -WindowStyle Hidden
-Assert-True ($uiTest.ExitCode -eq 0) "Installed app launcher self-test returned exit code $($uiTest.ExitCode)"
+Write-Host 'B2) Validate the installed app and full Run path'
+$appPath=Join-Path $installRoot 'AntigravityLocal.exe'
+$appTest=Start-Process -FilePath $appPath -ArgumentList '--self-test' -PassThru -Wait
+Assert-True ($appTest.ExitCode -eq 0) "Installed app full self-test returned exit code $($appTest.ExitCode)"
 
 $shortcutShell=New-Object -ComObject WScript.Shell
 $shortcut=$shortcutShell.CreateShortcut($shortcutPath)
-Assert-True ($shortcut.TargetPath -match 'powershell\.exe$') ('Desktop shortcut target is unexpected: '+$shortcut.TargetPath)
-Assert-True ($shortcut.Arguments -match 'local-ui\.ps1') ('Desktop shortcut arguments are unexpected: '+$shortcut.Arguments)
-Write-Host 'INSTALLED APP LAUNCHER SELF-TEST PASSED'
+Assert-True ([string]::Equals($shortcut.TargetPath,$appPath,[System.StringComparison]::OrdinalIgnoreCase)) ('Desktop shortcut target is unexpected: '+$shortcut.TargetPath)
+Write-Host 'INSTALLED APP FULL RUN SELF-TEST PASSED'
 
 Write-Host 'C) Repeat installation over the completed setup'
 $run2=Join-Path $env:RUNNER_TEMP 'ag-e2e-run2'
@@ -201,4 +193,4 @@ Remove-Item $shortcutPath -Force -ErrorAction SilentlyContinue
 Remove-Item 'HKCU:\Software\Microsoft\Windows\CurrentVersion\Uninstall\AntigravityLocal-gemma4-e2b' -Recurse -Force -ErrorAction SilentlyContinue
 Remove-Item $userModelSentinel -Force -ErrorAction SilentlyContinue
 
-Write-Host 'PRODUCTION WORKER RECOVERY / OPEN / REPEAT / UNINSTALL / REINSTALL PASSED'
+Write-Host 'PRODUCTION WORKER RECOVERY / OPEN / RUN / REPEAT / UNINSTALL / REINSTALL PASSED'
