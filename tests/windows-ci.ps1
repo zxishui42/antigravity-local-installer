@@ -10,9 +10,15 @@ Assert-True (Test-Path $zip) 'installer-source.zip is missing.'
 $work = Join-Path $env:RUNNER_TEMP 'ag-installer-src'
 Remove-Item $work -Recurse -Force -ErrorAction SilentlyContinue
 Expand-Archive -Path $zip -DestinationPath $work -Force
-$src = Get-ChildItem $work -Directory | Select-Object -First 1
-Assert-True ($null -ne $src) 'Source bundle did not contain a top-level folder.'
-Set-Location $src.FullName
+
+$workerFile = Get-ChildItem $work -Recurse -File -Filter 'worker.ps1' |
+    Where-Object { $_.FullName -match '[\\/]_internal[\\/]worker\.ps1$' } |
+    Select-Object -First 1
+Assert-True ($null -ne $workerFile) 'worker.ps1 was not found after extracting the source bundle.'
+$src = Split-Path (Split-Path $workerFile.FullName -Parent) -Parent
+Set-Location $src
+
+Write-Host "Testing source at: $src"
 
 Write-Host '1) Parse PowerShell source files'
 $tokens = $null
