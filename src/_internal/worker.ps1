@@ -19,9 +19,18 @@ try {
     }
     if($nvsmi){
         $raw=& $nvsmi --query-gpu=memory.total --format=csv,noheader,nounits 2>$null
-        $values=@($raw | ForEach-Object {
-            $s=([string]$_).Trim()
-            if($s -match '^\d+(?:\.\d+)?
+        $values=@()
+        foreach($line in @($raw)){
+            $number=0.0
+            $text=([string]$line).Trim()
+            if([double]::TryParse($text,[ref]$number)){ $values += $number }
+        }
+        if($values.Count -gt 0){
+            $maxMb=($values | Measure-Object -Maximum).Maximum
+            $DetectedNvidiaVramGb=[Math]::Round(([double]$maxMb/1024),1)
+        }
+    }
+} catch {}
 function Test-ProfileMatch($Profile){
     if($null -ne $Profile.verified -and -not [bool]$Profile.verified){return $false}
     if($null -ne $Profile.min_ram_gb -and $DetectedRamGb -lt [double]$Profile.min_ram_gb){return $false}
