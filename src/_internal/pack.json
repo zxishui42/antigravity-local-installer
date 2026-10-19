@@ -61,14 +61,25 @@
       "route": "Ollama",
       "model": "gemma4:12b-it-qat",
       "model_label": "Gemma 4 12B QAT",
-      "gpu_vendor": "any",
+      "gpu_vendor": "cpu-only",
       "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/12b-it-qat",
       "app_overhead_gb": 2.5,
       "fallback_required_gb": 9.7,
       "priority": 300,
-      "verified": false,
-      "verification_status": "candidate",
-      "source_url": "https://ollama.com/library/gemma4/tags"
+      "verified": true,
+      "verification_status": "integration_passed_16gb_cpu",
+      "source_url": "https://ollama.com/library/gemma4/tags",
+      "min_ram_gb": 16,
+      "validation_evidence": {
+        "environment": "GitHub Windows runner",
+        "ram_gb": 16,
+        "gpu": "Microsoft Hyper-V Video",
+        "antigravity_output": "OK",
+        "model_bytes": 7151027987,
+        "loaded_size_bytes": 8491106302,
+        "vram_bytes": 0,
+        "validated_run_id": 39275301652
+      }
     },
     {
       "id": "windows-ollama-gemma4-26b-qat",
