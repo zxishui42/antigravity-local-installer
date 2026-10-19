@@ -14,6 +14,7 @@ on:
       - 'src/_internal/litert_agent.py'
       - 'build/build-unix-profile.py'
       - 'tests/unix-ollama-e2e.sh'
+      - 'tests/unix-litert-e2e.sh'
       - '.github/workflows/native-unix-e2e.yml'
 
 jobs:
@@ -60,6 +61,52 @@ jobs:
           pkgutil --payload-files "dist/native/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
 
       - name: Upload native candidate package
+        uses: actions/upload-artifact@v4
+        with:
+          name: native-${{ matrix.profile }}
+          path: dist/native/${{ matrix.profile }}.*
+          if-no-files-found: error
+
+
+  litert-engine-native:
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            platform: macos
+            profile: macos-litert-gemma4-26b
+          - os: ubuntu-latest
+            platform: linux
+            profile: linux-litert-gemma4-26b
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run native LiteRT production engine with small checkpoint
+        shell: bash
+        run: bash tests/unix-litert-e2e.sh "${{ matrix.profile }}"
+
+      - name: Build native LiteRT candidate package
+        shell: bash
+        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native
+
+      - name: Verify Linux LiteRT self-extracting package
+        if: matrix.platform == 'linux'
+        shell: bash
+        run: |
+          test -s "dist/native/${{ matrix.profile }}.run"
+          grep -a -q '^__ANTIGRAVITY_PAYLOAD_BELOW__$' "dist/native/${{ matrix.profile }}.run"
+
+      - name: Verify macOS LiteRT package
+        if: matrix.platform == 'macos'
+        shell: bash
+        run: |
+          test -s "dist/native/${{ matrix.profile }}.pkg"
+          pkgutil --payload-files "dist/native/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
+
+      - name: Upload native LiteRT candidate package
         uses: actions/upload-artifact@v4
         with:
           name: native-${{ matrix.profile }}
