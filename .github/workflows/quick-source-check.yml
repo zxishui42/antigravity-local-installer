@@ -1,0 +1,54 @@
+name: Quick source check
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+concurrency:
+  group: quick-source-check-main
+  cancel-in-progress: true
+
+jobs:
+  parse:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Parse all PowerShell source
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          $files=@(
+            'src/_internal/worker.ps1',
+            'src/_internal/installer.ps1',
+            'build/prepare.ps1',
+            'build/build-profile.ps1',
+            'build/build-all-profiles.ps1',
+            'build/generate-site-routing.ps1',
+            'tests/windows-ci.ps1',
+            'tests/profile-catalog.ps1',
+            'tests/profile-model-validation.ps1',
+            'tests/litert-windows-preflight.ps1'
+          )
+          foreach($file in $files){
+            $tokens=$null
+            $errors=$null
+            [void][System.Management.Automation.Language.Parser]::ParseFile((Resolve-Path $file),[ref]$tokens,[ref]$errors)
+            if($errors.Count -gt 0){
+              $detail=($errors | ForEach-Object { ('line '+$_.Extent.StartLineNumber+' near ['+$_.Extent.Text+']: '+$_.Message) }) -join '; '
+              throw "$file parse errors: $detail"
+            }
+            Write-Host "PARSE OK: $file"
+          }
+
+      - name: Validate JSON catalogs
+        shell: pwsh
+        run: |
+          $ErrorActionPreference='Stop'
+          foreach($file in @('src/_internal/pack.json','catalog/site-hardware-options.json','catalog/package-routing.json')){
+            $null=Get-Content $file -Raw | ConvertFrom-Json
+            Write-Host "JSON OK: $file"
+          }
