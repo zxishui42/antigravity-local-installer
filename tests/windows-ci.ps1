@@ -18,13 +18,19 @@ foreach($file in @('_internal/worker.ps1','_internal/installer.ps1')){
 }
 
 Write-Host '2) Validate package config'
-$pack=Get-Content '_internal/pack.json' -Raw | ConvertFrom-Json
+$config=Get-Content '_internal/pack.json' -Raw | ConvertFrom-Json
+Assert-True ([int]$config.schema_version -ge 1) 'Missing config schema version.'
+Assert-True (@($config.profiles).Count -ge 1) 'No install profiles are configured.'
+$pack=@($config.profiles)[0]
+$shared=$config.shared
 Assert-True ($pack.model -eq 'gemma4:e2b') 'Unexpected model.'
-Assert-True ($pack.antigravity_version -eq '0.1.22') 'Unexpected Antigravity version.'
-Assert-True ([int]$pack.min_windows_build -ge 19045) 'Windows minimum build too low.'
-Assert-True ([int]$pack.port_start -lt [int]$pack.port_end) 'Invalid private port range.'
+Assert-True ($pack.install_folder -eq 'gemma4-e2b') 'Unexpected install folder.'
+Assert-True ([bool]$pack.verified) 'Primary install profile is not verified.'
+Assert-True ($shared.antigravity_version -eq '0.1.22') 'Unexpected Antigravity version.'
+Assert-True ([int]$shared.min_windows_build -ge 19045) 'Windows minimum build too low.'
+Assert-True ([int]$shared.port_start -lt [int]$shared.port_end) 'Invalid private port range.'
 Assert-True ([double]$pack.app_overhead_gb -gt 0) 'Invalid app overhead.'
-Assert-True ([int64]$pack.download_stall_seconds -gt 0) 'Invalid stall timeout.'
+Assert-True ([int64]$shared.download_stall_seconds -gt 0) 'Invalid stall timeout.'
 
 Write-Host '3) Regression: multi-GB counters stay 64-bit'
 [long]$downloaded=3502496202
@@ -86,6 +92,10 @@ Assert-True ($worker.Contains('--no-warn-script-location')) 'pip warning suppres
 Assert-True ($worker.Contains('[long](FolderBytes $ModelRoot)')) 'Model size accounting is not explicitly 64-bit.'
 Assert-True ($worker.Contains('OLLAMA_MODELS')) 'Private model directory isolation missing.'
 Assert-True ($worker.Contains('download_stall_seconds')) 'Download stall handling missing.'
+Assert-True ($worker.Contains('Test-ProfileMatch')) 'Installer is not profile-driven.'
+Assert-True ($worker.Contains('$Config.profiles')) 'Installer does not read configured profiles.'
+Assert-True ($worker.Contains('$Pack.install_folder')) 'Install folder is still hardcoded.'
+Assert-True (-not $worker.Contains("AntigravityLocal\gemma4-e2b")) 'Production worker still hardcodes the Gemma install folder.'
 Assert-True (-not $worker.Contains((([string][char]92)+([string][char]96)))) 'Prepared source still contains backslash/backtick artifacts.'
 Assert-True (-not $worker.Contains('\\')) 'Prepared source still contains doubled path separators.'
 
@@ -98,7 +108,7 @@ $venv=Join-Path $env:RUNNER_TEMP 'ag-ci-venv'
 Remove-Item $venv -Recurse -Force -ErrorAction SilentlyContinue
 python -m venv $venv
 $py=Join-Path $venv 'Scripts\python.exe'
-& $py -m pip install --disable-pip-version-check --no-input "google-antigravity==$($pack.antigravity_version)"
+& $py -m pip install --disable-pip-version-check --no-input "google-antigravity==$($shared.antigravity_version)"
 if($LASTEXITCODE -ne 0){throw 'google-antigravity install failed.'}
 & $py -c "from google.antigravity import Agent, LocalOpenAIAgentConfig; print('antigravity import ok')"
 if($LASTEXITCODE -ne 0){throw 'google-antigravity import failed.'}
