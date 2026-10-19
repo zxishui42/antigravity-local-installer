@@ -209,8 +209,9 @@
         ],
         "min_memory_gb": 24
       },
-      "status": "pending_product_definition",
-      "final_check": "build_macos_litert_package"
+      "status": "pending_validation",
+      "final_check": "native_and_physical_acceleration_validation",
+      "profile_id": "macos-litert-gemma4-26b"
     },
     {
       "id": "macos-apple-explicit-litert-24plus",
@@ -227,8 +228,9 @@
         ],
         "min_memory_gb": 24
       },
-      "status": "pending_product_definition",
-      "final_check": "build_macos_litert_package"
+      "status": "pending_validation",
+      "final_check": "native_and_physical_acceleration_validation",
+      "profile_id": "macos-litert-gemma4-26b"
     },
     {
       "id": "macos-apple-litert-under24-unsupported",
@@ -262,8 +264,9 @@
           "ollama"
         ]
       },
-      "status": "pending_product_definition",
-      "final_check": "build_macos_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "macos-ollama-gemma4-e2b"
     },
     {
       "id": "macos-apple-auto-ollama-under24",
@@ -280,8 +283,9 @@
         ],
         "max_memory_gb": 23
       },
-      "status": "pending_product_definition",
-      "final_check": "build_macos_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "macos-ollama-gemma4-e2b"
     },
     {
       "id": "macos-cpu-litert-unsupported",
@@ -315,8 +319,9 @@
           "ollama"
         ]
       },
-      "status": "pending_product_definition",
-      "final_check": "build_macos_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "macos-ollama-gemma4-e2b"
     },
     {
       "id": "linux-nvidia-auto-litert-24plus",
@@ -333,8 +338,9 @@
         ],
         "min_vram_gb": 24
       },
-      "status": "pending_product_definition",
-      "final_check": "build_linux_litert_package"
+      "status": "pending_validation",
+      "final_check": "native_and_physical_acceleration_validation",
+      "profile_id": "linux-litert-gemma4-26b"
     },
     {
       "id": "linux-nvidia-explicit-litert-24plus",
@@ -351,8 +357,9 @@
         ],
         "min_vram_gb": 24
       },
-      "status": "pending_product_definition",
-      "final_check": "build_linux_litert_package"
+      "status": "pending_validation",
+      "final_check": "native_and_physical_acceleration_validation",
+      "profile_id": "linux-litert-gemma4-26b"
     },
     {
       "id": "linux-nvidia-litert-under24-unsupported",
@@ -386,8 +393,9 @@
           "ollama"
         ]
       },
-      "status": "pending_product_definition",
-      "final_check": "build_linux_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "linux-ollama-gemma4-e2b"
     },
     {
       "id": "linux-nvidia-auto-ollama-under24",
@@ -404,8 +412,9 @@
         ],
         "max_vram_gb": 23
       },
-      "status": "pending_product_definition",
-      "final_check": "build_linux_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "linux-ollama-gemma4-e2b"
     },
     {
       "id": "linux-amd-litert-unsupported",
@@ -439,8 +448,9 @@
           "ollama"
         ]
       },
-      "status": "pending_product_definition",
-      "final_check": "build_linux_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "linux-ollama-gemma4-e2b"
     },
     {
       "id": "linux-cpu-litert-unsupported",
@@ -474,8 +484,9 @@
           "ollama"
         ]
       },
-      "status": "pending_product_definition",
-      "final_check": "build_linux_ollama_package"
+      "status": "pending_validation",
+      "final_check": "native_installer_e2e",
+      "profile_id": "linux-ollama-gemma4-e2b"
     }
   ],
   "default_status": "no_verified_installer",
@@ -486,8 +497,7 @@
     "Windows CPU-only 16–31 GB routes to E4B QAT; 32 GB+ routes to 12B QAT.",
     "Windows AMD Automatic and Windows NVIDIA Automatic below 24 GB route to the verified Ollama E2B package.",
     "Released routing rules only point to verified profiles.",
-    "macOS Apple Silicon Automatic uses LiteRT at 24 GB+ unified memory and Ollama below 24 GB, matching the live checker; packages are not released yet.",
-    "Linux NVIDIA Automatic uses LiteRT at 24 GB+ VRAM and Ollama below 24 GB; Linux AMD and CPU-only use Ollama. Cross-platform packages remain pending product definition.",
-    "Explicit LiteRT selections that the live checker rejects are classified unsupported_route instead of being counted as missing installer work."
+    "Explicit LiteRT selections that the live checker rejects are classified unsupported_route instead of being counted as missing installer work.",
+    "macOS and Linux package definitions now exist. Their website routes remain pending_validation until native installer E2E passes; LiteRT 26B also needs the target 24 GB+ accelerated hardware check before release."
   ]
 }
