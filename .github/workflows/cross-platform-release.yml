@@ -109,12 +109,17 @@ jobs:
             --catalog collected/release-macos/platform-catalog-macos.json \
             --catalog collected/release-linux/platform-catalog-linux.json \
             --output dist/installer-catalog.json
+      - name: Collect released package files
+        shell: bash
+        run: |
+          mkdir -p dist/profiles
+          find collected -type f \( -name '*.exe' -o -name '*.pkg' -o -name '*.run' \) -exec cp {} dist/profiles/ \;
       - name: Generate website routing
         shell: pwsh
         run: ./build/generate-site-routing.ps1
       - name: Verify every released website route has a package
         shell: bash
-        run: python3 tests/release-catalog.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json
+        run: python3 tests/release-catalog.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json --package-root dist
       - name: Generate website download manifest
         shell: bash
         run: python3 build/generate-download-manifest.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json --output dist/site-download-manifest.json
@@ -127,4 +132,5 @@ jobs:
             dist/site-installer-coverage.json
             dist/installer-work-queue.json
             dist/site-download-manifest.json
+            dist/profiles/*
           if-no-files-found: error
