@@ -173,6 +173,25 @@
       "release": false,
       "verification_status": "internal_ci_only",
       "source_url": "https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm"
+    },
+    {
+      "id": "windows-ollama-gemma4-e2b-cpu-8gb",
+      "install_folder": "gemma4-e2b-cpu-8gb",
+      "title": "Antigravity Local — Gemma 4 E2B CPU 8 GB",
+      "os": "Windows 10/11 x64",
+      "route": "Ollama",
+      "model": "gemma4:e2b",
+      "model_label": "Gemma 4 E2B",
+      "min_ram_gb": 8,
+      "gpu_vendor": "cpu-only",
+      "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e2b",
+      "app_overhead_gb": 2.5,
+      "fallback_required_gb": 8,
+      "priority": 150,
+      "verified": false,
+      "release": false,
+      "verification_status": "candidate_requires_physical_8gb_windows",
+      "source_url": "https://antigravitylocalmodels.com/"
     }
   ]
 }
