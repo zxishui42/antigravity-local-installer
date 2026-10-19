@@ -168,148 +168,20 @@ exit `$nativeCode
     if([string]::IsNullOrWhiteSpace($o)){throw 'Antigravity returned no output.'}
 }
 function Write-UserLauncher([string]$OllamaExe){
-$uiTemplate=@'
-param([switch]$SelfTest)
-Add-Type -AssemblyName System.Windows.Forms
-Add-Type -AssemblyName System.Drawing
-$ErrorActionPreference='Stop'
-$Root=Split-Path -Parent $MyInvocation.MyCommand.Path
-$Python=Join-Path $Root 'runtime\python\python.exe'
-$Agent=Join-Path $Root 'local_agent.py'
-$Ollama='__OLLAMA__'
-$ModelRoot=Join-Path $Root 'models'
-$HostValue='__HOST__'
-$ApiBase='http://__HOST__'
-$PidFile=Join-Path $Root 'ollama-server.pid'
-function ApiReady {
-    try { $r=Invoke-RestMethod -Uri "$ApiBase/api/version" -TimeoutSec 2; return ($null -ne $r.version) } catch { return $false }
-}
-function EnsureServer {
-    if(ApiReady){return}
-    $psi=New-Object Diagnostics.ProcessStartInfo
-    $psi.FileName=$Ollama
-    $psi.Arguments='serve'
-    $psi.UseShellExecute=$false
-    $psi.CreateNoWindow=$true
-    $psi.EnvironmentVariables['OLLAMA_HOST']=$HostValue
-    $psi.EnvironmentVariables['OLLAMA_MODELS']=$ModelRoot
-    $p=New-Object Diagnostics.Process
-    $p.StartInfo=$psi
-    [void]$p.Start()
-    $p.Id|Set-Content $PidFile -Encoding ASCII
-    for($i=0;$i -lt 30;$i++){Start-Sleep 1;if(ApiReady){return}}
-    try{$p.Kill()}catch{}
-    throw 'The local model service did not start.'
-}
-function StopServer {
-    if(Test-Path $PidFile){
-        try{$pidValue=[int](Get-Content $PidFile);Stop-Process -Id $pidValue -Force -ErrorAction SilentlyContinue}catch{}
-        Remove-Item $PidFile -Force -ErrorAction SilentlyContinue
-    }
-}
-if($SelfTest){
-    if(-not(Test-Path $Python)){throw 'Private Python was not found.'}
-    if(-not(Test-Path $Agent)){throw 'Antigravity agent was not found.'}
-    if(-not(Test-Path $Ollama)){throw 'Ollama executable was not found.'}
-    try { EnsureServer; if(-not(ApiReady)){throw 'Private Ollama API did not become ready.'} } finally { StopServer }
-    exit 0
-}
-$f=New-Object Windows.Forms.Form
-$f.Text='Antigravity Local'
-$f.Size=New-Object Drawing.Size(620,430)
-$f.StartPosition='CenterScreen'
-$f.BackColor=[Drawing.Color]::White
-$f.Font=New-Object Drawing.Font('Segoe UI',10)
-$l=New-Object Windows.Forms.Label
-$l.Text='Antigravity Local'
-$l.Font=New-Object Drawing.Font('Segoe UI Semibold',18)
-$l.AutoSize=$true
-$l.Location=New-Object Drawing.Point(25,20)
-$f.Controls.Add($l)
-$hint=New-Object Windows.Forms.Label
-$hint.Text='Enter a prompt.'
-$hint.AutoSize=$true
-$hint.Location=New-Object Drawing.Point(28,67)
-$f.Controls.Add($hint)
-$input=New-Object Windows.Forms.TextBox
-$input.Multiline=$true
-$input.Location=New-Object Drawing.Point(30,95)
-$input.Size=New-Object Drawing.Size(540,72)
-$input.Text='Reply with only: OK'
-$f.Controls.Add($input)
-$run=New-Object Windows.Forms.Button
-$run.Text='Run'
-$run.Location=New-Object Drawing.Point(30,184)
-$run.Size=New-Object Drawing.Size(110,38)
-$run.BackColor=[Drawing.Color]::Black
-$run.ForeColor=[Drawing.Color]::White
-$run.FlatStyle='Flat'
-$f.Controls.Add($run)
-$out=New-Object Windows.Forms.TextBox
-$out.Multiline=$true
-$out.ReadOnly=$true
-$out.ScrollBars='Vertical'
-$out.Location=New-Object Drawing.Point(30,240)
-$out.Size=New-Object Drawing.Size(540,115)
-$f.Controls.Add($out)
-$timer=New-Object Windows.Forms.Timer
-$timer.Interval=400
-$proc=$null
-$stdoutFile=Join-Path $env:TEMP ('aglocal-out-'+[guid]::NewGuid().ToString('N')+'.txt')
-$stderrFile=Join-Path $env:TEMP ('aglocal-err-'+[guid]::NewGuid().ToString('N')+'.txt')
-$run.Add_Click({
-    if($proc -and -not $proc.HasExited){return}
-    $run.Enabled=$false
-    $out.Text='Starting...'
-    $f.Refresh()
-    try{
-        EnsureServer
-        Remove-Item $stdoutFile,$stderrFile -Force -ErrorAction SilentlyContinue
-        $oldPrompt=$env:ANTIGRAVITY_LOCAL_PROMPT
-        $env:ANTIGRAVITY_LOCAL_PROMPT=$input.Text
-        try{
-            $proc=Start-Process -FilePath $Python -ArgumentList @($Agent) -WindowStyle Hidden -PassThru -RedirectStandardOutput $stdoutFile -RedirectStandardError $stderrFile
-        } finally {
-            $env:ANTIGRAVITY_LOCAL_PROMPT=$oldPrompt
-        }
-        $out.Text='Running...'
-        $timer.Start()
-    } catch {
-        $out.Text='Could not start the local setup.'+[Environment]::NewLine+$_.Exception.Message
-        $run.Enabled=$true
-    }
-})
-$timer.Add_Tick({
-    if(-not $proc){return}
-    if(-not $proc.HasExited){return}
-    $timer.Stop()
-    $stdout=if(Test-Path $stdoutFile){Get-Content $stdoutFile -Raw}else{''}
-    $stderr=if(Test-Path $stderrFile){Get-Content $stderrFile -Raw}else{''}
-    if(-not [string]::IsNullOrWhiteSpace($stdout)){
-        $out.Text=$stdout
-    } else {
-        $out.Text='The local setup returned an error.'+[Environment]::NewLine+$stderr
-    }
-    $run.Enabled=$true
-})
-$f.Add_FormClosing({
-    try{if($proc -and -not $proc.HasExited){$proc.Kill()}}catch{}
-    StopServer
-    Remove-Item $stdoutFile,$stderrFile -Force -ErrorAction SilentlyContinue
-})
-[void]$f.ShowDialog()
-'@
-    $ui=$uiTemplate.Replace('__OLLAMA__',$OllamaExe.Replace("'","''")).Replace('__HOST__',$OllamaHost)
-    $uiPath=Join-Path $InstallRoot 'local-ui.ps1'
-    Set-Content $uiPath $ui -Encoding UTF8
+    $appSource=Join-Path $ScriptRoot 'AntigravityLocal.exe'
+    if(-not(Test-Path $appSource)){throw 'The installed app executable is missing from this package.'}
+
+    $appPath=Join-Path $InstallRoot 'AntigravityLocal.exe'
+    Copy-Item -LiteralPath $appSource -Destination $appPath -Force
+
     $shell=New-Object -ComObject WScript.Shell
     $desktop=[Environment]::GetFolderPath('Desktop')
     $shortcut=$shell.CreateShortcut((Join-Path $desktop 'Antigravity Local.lnk'))
-    $shortcut.TargetPath=Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
-    $shortcut.Arguments='-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "'+$uiPath+'"'
+    $shortcut.TargetPath=$appPath
     $shortcut.WorkingDirectory=$InstallRoot
     $shortcut.Save()
 }
+
 function Register-Uninstaller {
     $uninstallDir=Join-Path $env:LOCALAPPDATA 'AntigravityLocal\\Uninstallers\\gemma4-e2b';New-Item -ItemType Directory -Force -Path $uninstallDir|Out-Null
 $un=@"
