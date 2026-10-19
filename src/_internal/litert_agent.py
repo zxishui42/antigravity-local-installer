@@ -6,6 +6,7 @@ from google.antigravity import Agent, LiteRTAgentConfig
 
 MODEL_PATH = os.environ.get("ANTIGRAVITY_LITERT_MODEL_PATH", "").strip()
 BACKEND = os.environ.get("ANTIGRAVITY_LITERT_BACKEND", "gpu").strip() or "gpu"
+CACHE_DIR = os.environ.get("ANTIGRAVITY_LITERT_CACHE_DIR", "").strip()
 
 
 async def run(prompt: str):
@@ -14,6 +15,7 @@ async def run(prompt: str):
     config = LiteRTAgentConfig(
         model_path=MODEL_PATH,
         backend=BACKEND,
+        cache_dir=CACHE_DIR or None,
     )
     async with Agent(config=config) as agent:
         response = await agent.chat(prompt)
