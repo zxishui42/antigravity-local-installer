@@ -92,6 +92,8 @@ Assert-True ($worker.Contains('--no-warn-script-location')) 'pip warning suppres
 Assert-True ($worker.Contains('[long](FolderBytes $ModelRoot)')) 'Model size accounting is not explicitly 64-bit.'
 Assert-True ($worker.Contains('OLLAMA_MODELS')) 'Private model directory isolation missing.'
 Assert-True ($worker.Contains('download_stall_seconds')) 'Download stall handling missing.'
+Assert-True ($worker.Contains('nvidia-smi')) 'NVIDIA VRAM recheck is missing.'
+Assert-True ($worker.Contains('min_vram_gb')) 'Profile VRAM floor is not enforced.'
 Assert-True ($worker.Contains('Test-ProfileMatch')) 'Installer is not profile-driven.'
 Assert-True ($worker.Contains('$Config.profiles')) 'Installer does not read configured profiles.'
 Assert-True ($worker.Contains('$Pack.install_folder')) 'Install folder is still hardcoded.'
