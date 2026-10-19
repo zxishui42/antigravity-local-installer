@@ -3,6 +3,21 @@ name: Windows installer CI
 on:
   push:
     branches: [main]
+    paths:
+      - 'src/_internal/installer.ps1'
+      - 'src/_internal/worker.ps1'
+      - 'src/_internal/local_agent.py'
+      - 'src/_internal/litert_agent.py'
+      - 'src/_internal/pack.json'
+      - 'catalog/**'
+      - 'build/app.cs'
+      - 'build/bootstrapper.cs'
+      - 'build/*.ps1'
+      - 'tests/windows-*.ps1'
+      - 'tests/bootstrapper-selftest.ps1'
+      - 'tests/profile-*.ps1'
+      - 'tests/release-catalog.ps1'
+      - '.github/workflows/windows-installer-ci.yml'
   workflow_dispatch:
 
 concurrency:
