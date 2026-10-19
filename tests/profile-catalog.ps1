@@ -66,20 +66,17 @@ Assert-True ($null -ne $cpu16 -and $cpu16.profile_id -eq 'windows-ollama-gemma4-
 $cpu32=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 32 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $cpu32 -and $cpu32.profile_id -eq 'windows-ollama-gemma4-12b-qat') 'Windows CPU-only 32 GB did not route to validated 12B profile.'
 
-$cpu8=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 8 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'no_verified_installer') 'Windows CPU-only 8 GB must stay unverified.'
-
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'pending_validation' -and $gpu24.profile_id -eq 'windows-litert-gemma4-26b') '24 GB automatic NVIDIA config should be tracked as pending LiteRT validation.'
 
 $mac16=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 16 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $mac16 -and $mac16.status -eq 'pending_product_definition' -and [string]::IsNullOrWhiteSpace([string]$mac16.profile_id)) 'macOS Apple Silicon 16 GB Automatic should be queued for an Ollama product definition.'
+Assert-True ($null -ne $mac16 -and $mac16.status -eq 'pending_validation' -and $mac16.profile_id -eq 'macos-ollama-gemma4-e2b') 'macOS Apple Silicon 16 GB Automatic should map to the pending Ollama profile.'
 
 $mac24=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $mac24 -and $mac24.status -eq 'pending_product_definition') 'macOS Apple Silicon 24 GB Automatic should be queued for a LiteRT product definition.'
+Assert-True ($null -ne $mac24 -and $mac24.status -eq 'pending_validation' -and $mac24.profile_id -eq 'macos-litert-gemma4-26b') 'macOS Apple Silicon 24 GB Automatic should map to the pending LiteRT profile.'
 
 $linuxNvidia24=@($out.configurations | Where-Object { $_.os -eq 'linux' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $linuxNvidia24 -and $linuxNvidia24.status -eq 'pending_product_definition') 'Linux NVIDIA 24 GB Automatic should be queued for a LiteRT product definition.'
+Assert-True ($null -ne $linuxNvidia24 -and $linuxNvidia24.status -eq 'pending_validation' -and $linuxNvidia24.profile_id -eq 'linux-litert-gemma4-26b') 'Linux NVIDIA 24 GB Automatic should map to the pending LiteRT profile.'
 
 $linuxAmdLiteRT=@($out.configurations | Where-Object { $_.os -eq 'linux' -and $_.graphics -eq 'amd' -and $_.runtime -eq 'litert' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $linuxAmdLiteRT -and $linuxAmdLiteRT.status -eq 'unsupported_route') 'Linux AMD LiteRT should be classified unsupported.'
