@@ -77,4 +77,5 @@ jobs:
             dist/profiles/*.exe
             dist/installer-catalog.json
             dist/site-installer-routing.json
+            dist/site-installer-coverage.json
           if-no-files-found: error
