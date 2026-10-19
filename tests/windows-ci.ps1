@@ -14,6 +14,7 @@ Expand-Archive -Path $zip -DestinationPath $work -Force
 $workerFile = Get-ChildItem $work -Recurse -File -Filter 'worker.ps1' |
     Where-Object { $_.FullName -match '[\\/]_internal[\\/]worker\.ps1$' } |
     Select-Object -First 1
+if ($null -eq $workerFile) { Write-Host 'Extracted files:'; Get-ChildItem $work -Recurse -Force | ForEach-Object { Write-Host $_.FullName } }
 Assert-True ($null -ne $workerFile) 'worker.ps1 was not found after extracting the source bundle.'
 $src = Split-Path (Split-Path $workerFile.FullName -Parent) -Parent
 Set-Location $src
