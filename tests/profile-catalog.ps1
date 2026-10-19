@@ -61,4 +61,13 @@ Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'no_verified_installer') 'Win
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'pending_validation' -and $gpu24.profile_id -eq 'windows-litert-gemma4-26b') '24 GB automatic NVIDIA config should be tracked as pending LiteRT validation.'
 
+$gpu16LiteRT=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 16 -and $_.runtime -eq 'litert' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $gpu16LiteRT -and $gpu16LiteRT.status -eq 'unsupported_route') 'NVIDIA below 24 GB with explicit LiteRT should be marked unsupported.'
+
+$amdLiteRT=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'amd' -and $_.runtime -eq 'litert' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $amdLiteRT -and $amdLiteRT.status -eq 'unsupported_route') 'AMD explicit LiteRT should be marked unsupported.'
+
+$cpu8=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 8 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'pending_validation' -and $cpu8.profile_id -eq 'windows-ollama-gemma4-e2b-cpu-8gb') 'Windows CPU-only 8 GB should be pending physical validation.'
+
 Write-Host ("PROFILE / ROUTING CATALOG PASSED: "+$out.configuration_count+" configurations, "+$out.installer_available_count+" installer-ready.")
