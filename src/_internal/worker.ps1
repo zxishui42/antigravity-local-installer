@@ -250,7 +250,7 @@ Remove-Item '$($uninstallKey.Replace("'","''"))' -Recurse -Force -ErrorAction Si
 }
 
 try {
-    Status 'Checking this PC' 'Checking Windows, memory, storage, and network.' 'No changes have been made yet.' 8
+    Status 'Checking this PC' 'Checking Windows, memory, storage, and network.' ("Selected tested setup: "+[string]$Pack.model_label+" via "+[string]$Pack.route+".") 8
     if(-not[Environment]::Is64BitOperatingSystem){Fail 'This package needs 64-bit Windows.' 'Choose a compatible package.'}
     $os=Get-CimInstance Win32_OperatingSystem;if([int]$os.BuildNumber -lt [int]$Pack.min_windows_build){Fail 'This Windows version is too old for the current local runtime.' "Windows build $($Pack.min_windows_build) or newer is required."}
     $ram=$DetectedRamGb;if($ram -lt [int]$Pack.min_ram_gb){Fail 'This PC does not have enough memory.' "Detected: $ram GB. Required: at least $($Pack.min_ram_gb) GB."}
@@ -270,7 +270,7 @@ try {
     $state=[ordered]@{pack=$Pack.id;profile=$Pack.id;model=$Pack.model;model_label=$Pack.model_label;installed=(Get-Date).ToString('o');install_root=$InstallRoot;model_root=$ModelRoot;ollama=$ollama;port=$PrivatePort;size_vram=$vram};$state|ConvertTo-Json|Set-Content $StateFile -Encoding UTF8
     Stop-PrivateOllama
     $accel=if($vram -gt 0){'GPU acceleration was detected.'}else{'The setup works. GPU acceleration was not detected in this test, so it may run more slowly.'}
-    Status 'Installation complete' 'The local setup is ready.' "$accel Everything for this package is stored on $TargetDrive. A desktop shortcut was added." 100 'success'
+    Status 'Installation complete' 'The local setup is ready.' ("Installed setup: "+[string]$Pack.model_label+". "+$accel+" Files are stored on "+$TargetDrive+". Use the Installation Test shortcut to verify it again later.") 100 'success'
 } catch {
     Log ('ERROR: '+$_.Exception.ToString());Stop-PrivateOllama;Fail 'The installation could not continue.' 'No manual commands are required. Click Copy details to send the technical log to support.'
 }
