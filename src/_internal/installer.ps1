@@ -174,8 +174,19 @@ $copy.Add_Click({
 $openButton.Add_Click({
     if (-not $selectedRoot) { return }
     $installRoot = Join-Path ($selectedRoot + '\') 'AntigravityLocal\gemma4-e2b'
-    $vbs = Join-Path $installRoot 'Open Antigravity Local.vbs'
-    if (Test-Path $vbs) { Start-Process 'wscript.exe' -ArgumentList "`"$vbs`"" }
+    $ui = Join-Path $installRoot 'local-ui.ps1'
+    if (-not (Test-Path $ui)) {
+        [System.Windows.Forms.MessageBox]::Show('The installed app launcher was not found.','Antigravity Local') | Out-Null
+        return
+    }
+    $powershell = Join-Path $env:SystemRoot 'System32\WindowsPowerShell\v1.0\powershell.exe'
+    if (-not (Test-Path $powershell)) { $powershell = 'powershell.exe' }
+    $arguments = "-NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File `"$ui`""
+    try {
+        Start-Process -FilePath $powershell -ArgumentList $arguments -WindowStyle Hidden | Out-Null
+    } catch {
+        [System.Windows.Forms.MessageBox]::Show(('The app could not be opened.'+[Environment]::NewLine+[Environment]::NewLine+$_.Exception.Message),'Antigravity Local') | Out-Null
+    }
 })
 
 $timer.Add_Tick({
