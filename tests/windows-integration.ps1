@@ -55,7 +55,7 @@ try{
   Assert-True $ready 'Isolated Ollama server did not become ready.'
 
   Write-Host 'C) Pull a tiny real model into the isolated model directory'
-  $ciModel='smollm2:135m-instruct-q2_K'
+  $ciModel='qwen3:0.6b'
   $oldHost=$env:OLLAMA_HOST
   $oldModels=$env:OLLAMA_MODELS
   $env:OLLAMA_HOST=$hostValue
@@ -79,10 +79,13 @@ try{
   Write-Host 'E) Real Antigravity -> Ollama -> model call'
   $oldPrompt=$env:ANTIGRAVITY_LOCAL_PROMPT
   $env:ANTIGRAVITY_LOCAL_PROMPT='Reply with only: OK'
+  $oldPreference=$ErrorActionPreference
   try{
+    $ErrorActionPreference='Continue'
     $output=& $py $agentPath 2>&1
     $code=$LASTEXITCODE
   }finally{
+    $ErrorActionPreference=$oldPreference
     $env:ANTIGRAVITY_LOCAL_PROMPT=$oldPrompt
   }
   Write-Host "Agent exit code: $code"
