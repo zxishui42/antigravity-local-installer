@@ -220,7 +220,7 @@ Remove-Item 'HKCU:\\Software\\Microsoft\\Windows\\CurrentVersion\\Uninstall\\Ant
     New-ItemProperty -Path $key -Name 'Publisher' -Value 'Antigravity Local Models' -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $key -Name 'DisplayVersion' -Value ([string]$Pack.version) -PropertyType String -Force | Out-Null
     New-ItemProperty -Path $key -Name 'InstallLocation' -Value $InstallRoot -PropertyType String -Force | Out-Null
-    $uninstallCommand=("powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File \`\""+$unPath+"\`\"")
+    $uninstallCommand = 'powershell.exe -NoProfile -ExecutionPolicy Bypass -WindowStyle Hidden -File "' + $unPath + '"'
     New-ItemProperty -Path $key -Name 'UninstallString' -Value $uninstallCommand -PropertyType String -Force | Out-Null
 }
 
