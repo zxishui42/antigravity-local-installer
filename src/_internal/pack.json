@@ -1,0 +1,21 @@
+{
+  "id": "windows-ollama-gemma4-e2b",
+  "title": "Antigravity Local — Gemma 4 E2B",
+  "os": "Windows 10/11 x64",
+  "route": "Ollama",
+  "model": "gemma4:e2b",
+  "model_label": "Gemma 4 E2B",
+  "antigravity_version": "0.1.22",
+  "python_version": "3.12.10",
+  "python_embed_url": "https://www.python.org/ftp/python/3.12.10/python-3.12.10-embeddable-amd64.zip",
+  "min_ram_gb": 8,
+  "registry_manifest_url": "https://registry.ollama.ai/v2/library/gemma4/manifests/e2b",
+  "app_overhead_gb": 2.5,
+  "fallback_required_gb": 8.0,
+  "ollama_port": 11435,
+  "version": "3.1-rc1-ci",
+  "min_windows_build": 19045,
+  "port_start": 11435,
+  "port_end": 11455,
+  "download_stall_seconds": 300
+}
