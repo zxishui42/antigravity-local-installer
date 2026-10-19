@@ -24,6 +24,7 @@ values={
   "LITERT_DOWNLOAD_URL":"https://huggingface.co/litert-community/gemma-4-E2B-it-litert-lm/resolve/main/gemma-4-E2B-it.litertlm?download=true",
   "MODEL_SHA256":"181938105e0eefd105961417e8da75903eacda102c4fce9ce90f50b97139a63c",
   "LITERT_BACKEND":"cpu",
+  "MIN_RAM_GB":"1",
 }
 for k,v in values.items():
     s=re.sub(rf"^{re.escape(k)}=.*$", k+"='"+v.replace("'","'\\''")+"'", s, flags=re.M)
