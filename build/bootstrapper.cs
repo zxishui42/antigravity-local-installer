@@ -13,6 +13,7 @@ namespace AntigravityLocalSetup
             "Payload.Installer",
             "Payload.Worker",
             "Payload.Agent",
+            "Payload.LiteRTAgent",
             "Payload.Pack",
             "Payload.App"
         };
@@ -29,6 +30,7 @@ namespace AntigravityLocalSetup
                 Extract("Payload.Installer", installer);
                 Extract("Payload.Worker", Path.Combine(internalDir, "worker.ps1"));
                 Extract("Payload.Agent", Path.Combine(internalDir, "local_agent.py"));
+                Extract("Payload.LiteRTAgent", Path.Combine(internalDir, "litert_agent.py"));
                 Extract("Payload.Pack", Path.Combine(internalDir, "pack.json"));
                 Extract("Payload.App", Path.Combine(internalDir, "AntigravityLocal.exe"));
 
@@ -39,7 +41,7 @@ namespace AntigravityLocalSetup
                         if (Assembly.GetExecutingAssembly().GetManifestResourceStream(resource) == null) return 20;
                     }
                     string[] files = Directory.GetFiles(internalDir);
-                    if (files.Length != 5) return 21;
+                    if (files.Length != 6) return 21;
                     foreach (string file in files)
                     {
                         FileInfo fi = new FileInfo(file);
