@@ -5,8 +5,9 @@ function Assert-True([bool]$Condition,[string]$Message) {
 }
 
 $repoRoot = (Get-Location).Path
-$src = Join-Path $repoRoot 'src'
-Assert-True (Test-Path $src) 'src directory is missing.'
+& (Join-Path $repoRoot 'build\prepare.ps1')
+$src = Join-Path $repoRoot '.buildsrc'
+Assert-True (Test-Path $src) 'Prepared source directory is missing.'
 Set-Location $src
 
 Write-Host '1) Parse production PowerShell'
@@ -85,6 +86,8 @@ Assert-True ($worker.Contains('--no-warn-script-location')) 'pip warning suppres
 Assert-True ($worker.Contains('[long](FolderBytes $ModelRoot)')) 'Model size accounting is not explicitly 64-bit.'
 Assert-True ($worker.Contains('OLLAMA_MODELS')) 'Private model directory isolation missing.'
 Assert-True ($worker.Contains('download_stall_seconds')) 'Download stall handling missing.'
+Assert-True (-not $worker.Contains((([string][char]92)+([string][char]96)))) 'Prepared source still contains backslash/backtick artifacts.'
+Assert-True (-not $worker.Contains('\\')) 'Prepared source still contains doubled path separators.'
 
 Write-Host '7) Python syntax'
 python -m py_compile '_internal/local_agent.py'
@@ -105,7 +108,7 @@ Assert-True (Test-Path 'Install Antigravity Local.vbs') 'VBS launcher missing.'
 Assert-True (Test-Path 'START_HERE.cmd') 'CMD launcher missing.'
 Assert-True ($worker.Contains('Register-Uninstaller')) 'Uninstaller registration missing.'
 Assert-True ($worker.Contains('HKCU:')) 'Per-user uninstall registry entry missing.'
-Assert-True ($worker.Contains("Remove-Item `$root -Recurse -Force")) 'Generated uninstaller does not remove its own install root.'
+Assert-True ($worker.Contains('Remove-Item `$root -Recurse -Force')) 'Generated uninstaller does not remove its own install root.'
 
 Write-Host '10) Build customer source package'
 $dist=Join-Path $repoRoot 'dist'
