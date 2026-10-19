@@ -111,7 +111,34 @@ $result=[ordered]@{
 }
 $result | ConvertTo-Json -Depth 12 | Set-Content $out -Encoding UTF8
 
+$coverage=[ordered]@{
+    schema_version=1
+    generated_utc=$result.generated_utc
+    configuration_count=$result.configuration_count
+    installer_available_count=$result.installer_available_count
+    no_verified_installer_count=$result.no_verified_installer_count
+    by_os=@()
+    by_graphics=@()
+    by_runtime=@()
+    by_profile=@()
+}
+foreach($g in @($rows | Group-Object os)){
+    $coverage.by_os += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count}
+}
+foreach($g in @($rows | Group-Object graphics)){
+    $coverage.by_graphics += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count}
+}
+foreach($g in @($rows | Group-Object runtime)){
+    $coverage.by_runtime += [pscustomobject]@{name=$g.Name;total=$g.Count;installer_available=@($g.Group|Where-Object{$_.status -eq 'installer_available'}).Count}
+}
+foreach($g in @($rows | Where-Object{$_.status -eq 'installer_available'} | Group-Object profile_id)){
+    $coverage.by_profile += [pscustomobject]@{name=$g.Name;configuration_count=$g.Count}
+}
+$coverageOut=Join-Path $outDir 'site-installer-coverage.json'
+$coverage | ConvertTo-Json -Depth 12 | Set-Content $coverageOut -Encoding UTF8
+
 Write-Host ("Generated "+$rows.Count+" website configuration routes.")
 Write-Host ("Installer available: "+$result.installer_available_count)
 Write-Host ("No verified installer yet: "+$result.no_verified_installer_count)
 Write-Host ("Routing table: "+$out)
+Write-Host ("Coverage report: "+$coverageOut)
