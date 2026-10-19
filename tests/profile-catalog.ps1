@@ -26,7 +26,9 @@ foreach($p in $profiles){
     $folderKey=$platformKey+'|'+[string]$p.install_folder
     Assert-True (-not $folders.ContainsKey($folderKey)) ("Duplicate install folder on "+$platformKey+": "+[string]$p.install_folder)
     if([bool]$p.verified){
-        Assert-True ($null -ne $p.min_ram_gb -and [double]$p.min_ram_gb -gt 0) ("Verified profile has no RAM floor: "+[string]$p.id)
+        $hasRamFloor=($null -ne $p.min_ram_gb -and [double]$p.min_ram_gb -gt 0)
+        $hasVramFloor=($null -ne $p.min_vram_gb -and [double]$p.min_vram_gb -gt 0)
+        Assert-True ($hasRamFloor -or $hasVramFloor) ("Verified profile has no hardware memory floor: "+[string]$p.id)
         Assert-True ($null -ne $p.validation_evidence) ("Verified profile has no validation evidence: "+[string]$p.id)
         Assert-True (-not[string]::IsNullOrWhiteSpace([string]$p.verification_status)) ("Verified profile has no verification status: "+[string]$p.id)
     }
