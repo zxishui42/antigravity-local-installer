@@ -2,6 +2,26 @@
   "schema_version": 1,
   "rules": [
     {
+      "id": "windows-nvidia-24plus-litert-pending",
+      "priority": 500,
+      "match": {
+        "os": [
+          "windows"
+        ],
+        "graphics": [
+          "nvidia"
+        ],
+        "runtime": [
+          "automatic",
+          "litert"
+        ],
+        "min_vram_gb": 24
+      },
+      "profile_id": "windows-litert-gemma4-26b",
+      "status": "pending_validation",
+      "final_check": "physical_nvidia_24gb"
+    },
+    {
       "id": "windows-cpu-32plus-12b",
       "priority": 300,
       "match": {
@@ -88,6 +108,7 @@
     "Windows CPU-only 16 GB routes to the smaller E4B QAT profile; 32 GB and above routes to the validated 12B QAT profile.",
     "Automatic GPU configurations at 24 GB VRAM or above are intentionally not mapped to Ollama because the live site points that tier toward LiteRT.",
     "Explicit Ollama GPU configurations below or above 24 GB use the verified E2B package for now; the installer rechecks actual Windows RAM before making changes.",
-    "A configuration is only marked installer_available when its target profile is verified."
+    "A configuration is only marked installer_available when its target profile is verified.",
+    "Windows NVIDIA 24 GB+ LiteRT combinations are tracked as pending_validation until the full package passes on a physical supported NVIDIA machine; they are not released or sold as an installer yet."
   ]
 }
