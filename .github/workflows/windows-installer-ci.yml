@@ -26,6 +26,10 @@ jobs:
         shell: powershell
         run: .\\tests\\windows-integration.ps1
 
+      - name: Run production worker recovery and reinstall test
+        shell: powershell
+        run: .\\tests\\windows-endtoend.ps1
+
       - name: Upload Windows-tested package
         if: success()
         uses: actions/upload-artifact@v4
