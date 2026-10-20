@@ -9,7 +9,7 @@ on:
 
 concurrency:
   group: native-ollama-real-model-validation
-  cancel-in-progress: true
+  cancel-in-progress: false
 
 jobs:
   real-model:
