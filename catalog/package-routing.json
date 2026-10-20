@@ -541,13 +541,13 @@
     "Windows AMD Automatic and Windows NVIDIA Automatic below 24 GB route to the verified Ollama E2B package.",
     "Released routing rules only point to verified profiles.",
     "Explicit LiteRT selections that the live checker rejects are classified unsupported_route instead of being counted as missing installer work.",
-    "macOS and Linux package definitions now exist. Their website routes remain pending_validation until native installer E2E passes; LiteRT 26B also needs the target 24 GB+ accelerated hardware check before release.",
+    "macOS Qwen3 1.7B and 4B Ollama packages are released after clean-state final .pkg validation; macOS LiteRT 26B and Linux accelerated routes still require their target hardware gates before release.",
     "Linux Ollama Gemma 4 E2B was released after native Ubuntu real-model validation and successful execution of the final self-extracting .run package.",
     "Linux Ollama engine and self-extracting .run package passed real-model validation, but customer delivery remains pending because a terminal-only .run file does not satisfy the one-click/no-command customer requirement.",
     "macOS Apple Silicon Automatic uses Qwen3 1.7B at 8–15 GB, Qwen3 4B at 16–23 GB, and LiteRT + Gemma 4 26B at 24 GB+ once each package gate passes.",
     "The previous macOS Gemma 4 E2B Ollama candidate is not routed to lower-memory Macs because the real macOS runner showed that model could not start with only about 4.2 GiB available after overhead.",
     "macOS CPU-only remains a product-definition gap because the live selector does not identify CPU architecture, so an arm64-only package must not be sent blindly.",
     "Windows CPU-only 8 GB now targets the smaller Qwen3 1.7B candidate instead of Gemma 4 E2B; release still requires a real 8 GB Windows validation.",
-    "If the macOS Qwen3 4B tier is still pending but the Qwen3 1.7B tier is released, 16–23 GB Ollama configurations may use the released 1.7B installer as an explicit lower-tier fallback instead of being blocked."
+    "macOS Qwen3 1.7B and 4B Ollama tiers are released; the fallback metadata remains available for future staged rollouts but the current 16–23 GB route resolves to the verified 4B package."
   ]
 }

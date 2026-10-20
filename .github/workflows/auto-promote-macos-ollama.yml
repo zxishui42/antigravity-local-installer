@@ -6,7 +6,7 @@ on:
     types: [completed]
 
 permissions:
-  actions: read
+  actions: write
   contents: write
 
 concurrency:
@@ -98,3 +98,7 @@ jobs:
           git add src/_internal/pack.json catalog/package-routing.json
           git commit -m "Promote validated macOS Ollama installer tiers"
           git push origin HEAD:main
+
+          # Pushes made with GITHUB_TOKEN do not start other push-triggered workflows.
+          # Explicitly rebuild the paid-delivery release catalog after promotion.
+          gh workflow run cross-platform-release.yml --ref main
