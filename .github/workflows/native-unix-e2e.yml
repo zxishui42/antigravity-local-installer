@@ -19,7 +19,7 @@ on:
 
 concurrency:
   group: native-unix-e2e-main
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   ollama-native:
