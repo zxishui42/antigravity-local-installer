@@ -1,0 +1,90 @@
+name: Populate Cloudflare production source
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - '.github/workflows/populate-cloudflare-prod.yml'
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  actions: read
+
+jobs:
+  populate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out deployment branch
+        uses: actions/checkout@v4
+        with:
+          ref: cloudflare-prod-deploy
+          fetch-depth: 0
+
+      - name: Download formal release catalog
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          rm -rf /tmp/release /tmp/paid
+          mkdir -p /tmp/release /tmp/paid
+          gh run download 39357880330 --repo "${GITHUB_REPOSITORY}" --name global-installer-release-catalog --dir /tmp/release
+          gh run download 39365895820 --repo "${GITHUB_REPOSITORY}" --name production-paid-delivery-zips --dir /tmp/paid
+          test -f /tmp/release/site-download-manifest.json
+          test -f /tmp/paid/delivery-manifest.json
+
+      - name: Generate exact released routes and embedded delivery modules
+        run: |
+          python - <<'PY'
+          import base64, json
+          from pathlib import Path
+
+          manifest=json.loads(Path('/tmp/release/site-download-manifest.json').read_text())
+          assert manifest['route_count']==1008, manifest['route_count']
+          assert manifest['released_route_count']==368, manifest['released_route_count']
+          rows=[]
+          for r in manifest['routes']:
+              if r['status']!='installer_available':
+                  continue
+              rows.append([
+                  r['os'], r['graphics'], r['hardware_id'], r.get('memory_gb'),
+                  r['runtime'], r['profile_id'], r.get('required_ram_gb')
+              ])
+          assert len(rows)==368
+          Path('cloudflare-prod/src/routes.js').write_text(
+              'export const RELEASED_ROUTES = '+json.dumps(rows,separators=(',',':'))+';\n'
+          )
+
+          profile_files=[
+              ('macos-ollama-qwen3-1.7b','macos-ollama-qwen3-1.7b.zip'),
+              ('macos-ollama-qwen3-4b','macos-ollama-qwen3-4b.zip'),
+              ('windows-ollama-gemma4-12b-qat','windows-ollama-gemma4-12b-qat.zip'),
+              ('windows-ollama-gemma4-e2b','windows-ollama-gemma4-e2b.zip'),
+              ('windows-ollama-gemma4-e4b-qat','windows-ollama-gemma4-e4b-qat.zip'),
+          ]
+          for i,(profile,name) in enumerate(profile_files,1):
+              data=Path('/tmp/paid',name).read_bytes()
+              encoded=base64.b64encode(data).decode()
+              Path(f'cloudflare-prod/src/delivery-{i}.js').write_text(
+                  f'export const ZIP_{i} = '+json.dumps(encoded)+';\n'
+              )
+          print('Generated 368 released routes and five delivery modules.')
+          PY
+
+      - name: Verify generated deployment source
+        run: |
+          test "$(grep -o 'installer_available' /tmp/release/site-download-manifest.json | wc -l)" -ge 368
+          for n in 1 2 3 4 5; do test -s "cloudflare-prod/src/delivery-$n.js"; done
+          test -s cloudflare-prod/src/routes.js
+
+      - name: Commit generated files
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add cloudflare-prod/src/routes.js cloudflare-prod/src/delivery-1.js cloudflare-prod/src/delivery-2.js cloudflare-prod/src/delivery-3.js cloudflare-prod/src/delivery-4.js cloudflare-prod/src/delivery-5.js
+          if git diff --cached --quiet; then
+            echo "No generated changes."
+          else
+            git commit -m "Generate Cloudflare production release payloads"
+            git push origin HEAD:cloudflare-prod-deploy
+          fi
