@@ -1,0 +1,40 @@
+name: Paid delivery API CI
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'delivery/**'
+      - 'web/checkout-delivery.js'
+      - 'tests/test-delivery-core.py'
+      - '.github/workflows/delivery-api-ci.yml'
+  push:
+    branches: [main]
+    paths:
+      - 'delivery/**'
+      - 'web/checkout-delivery.js'
+      - 'tests/test-delivery-core.py'
+      - '.github/workflows/delivery-api-ci.yml'
+
+concurrency:
+  group: paid-delivery-api-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  delivery-core:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+      - name: Install delivery dependencies
+        run: python -m pip install -r delivery/requirements.txt
+      - name: Run paid-delivery core tests
+        run: python -m unittest -v tests/test-delivery-core.py
+      - name: Compile delivery backend
+        run: python -m py_compile delivery/core.py delivery/app.py
+      - name: Syntax-check browser delivery helper
+        run: node --check web/checkout-delivery.js
