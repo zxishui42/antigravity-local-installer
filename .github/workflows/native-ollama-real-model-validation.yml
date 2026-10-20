@@ -13,7 +13,7 @@ on:
 
 concurrency:
   group: native-ollama-real-model-validation
-  cancel-in-progress: false
+  cancel-in-progress: true
 
 jobs:
   real-model:
@@ -44,7 +44,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run full native install with production Gemma 4 E2B
+      - name: Run full native install with production model
         shell: bash
         env:
           ANTIGRAVITY_E2E_MODEL: ${{ matrix.model }}
