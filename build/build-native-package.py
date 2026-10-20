@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, os, re, shutil, stat, subprocess, tarfile, tempfile
+import argparse, os, re, shlex, shutil, stat, subprocess, tarfile, tempfile
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -58,9 +58,42 @@ def build_macos(profile_id, outdir, ci_min_ram_gb=None):
             else: shutil.copy2(item,dest/item.name)
         os.chmod(dest/"install.sh",0o755)
 
+        install_path=f"/Library/Application Support/AntigravityLocal/Installer/{profile_id}/install.sh"
+        starter_path=f"/Library/Application Support/AntigravityLocal/Installer/{profile_id}/start-install.sh"
+        starter=dest/"start-install.sh"
+        quoted_install_path=shlex.quote(install_path)
+        starter.write_text(f'''#!/bin/bash
+set -euo pipefail
+INSTALL_SCRIPT={quoted_install_path}
+LOG_DIR="$HOME/Library/Logs/AntigravityLocal"
+LOG_FILE="$LOG_DIR/{profile_id}-install.log"
+PID_FILE="$LOG_DIR/{profile_id}-install.pid"
+RESULT_FILE="$LOG_DIR/{profile_id}-install.exit"
+
+mkdir -p "$LOG_DIR"
+if [ -f "$PID_FILE" ]; then
+  OLD_PID="$(/bin/cat "$PID_FILE" 2>/dev/null || true)"
+  if [ -n "$OLD_PID" ] && /bin/kill -0 "$OLD_PID" >/dev/null 2>&1; then
+    echo "[Antigravity Local] Installation is already running as PID $OLD_PID."
+    exit 0
+  fi
+fi
+
+rm -f "$RESULT_FILE"
+nohup /bin/bash -c '
+  /bin/bash "$1" >>"$2" 2>&1
+  rc=$?
+  printf "%s\\n" "$rc" > "$3"
+  rm -f "$4"
+  exit "$rc"
+' bash "$INSTALL_SCRIPT" "$LOG_FILE" "$RESULT_FILE" "$PID_FILE" >/dev/null 2>&1 </dev/null &
+echo "$!" > "$PID_FILE"
+echo "[Antigravity Local] Background installation started as PID $!."
+''')
+        os.chmod(starter,0o755)
+
         scripts=stage/"scripts"; scripts.mkdir()
         post=scripts/"postinstall"
-        install_path=f"/Library/Application Support/AntigravityLocal/Installer/{profile_id}/install.sh"
         post.write_text(f'''#!/bin/bash
 set -e
 LOG_FILE="/var/tmp/antigravity-local-postinstall.log"
@@ -104,8 +137,8 @@ fi
 echo "[Antigravity Local] Installing for user: $CONSOLE_USER"
 echo "[Antigravity Local] User home: $USER_HOME"
 
-/usr/bin/sudo -H -u "$CONSOLE_USER" /usr/bin/env HOME="$USER_HOME" USER="$CONSOLE_USER" LOGNAME="$CONSOLE_USER" /bin/bash {install_path!r}
-echo "[Antigravity Local] macOS package postinstall completed."
+/usr/bin/sudo -H -u "$CONSOLE_USER" /usr/bin/env HOME="$USER_HOME" USER="$CONSOLE_USER" LOGNAME="$CONSOLE_USER" /bin/bash {starter_path!r}
+echo "[Antigravity Local] Background model installation started; package postinstall can now exit safely."
 ''')
         os.chmod(post,0o755)
 
