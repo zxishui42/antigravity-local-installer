@@ -50,7 +50,7 @@ else
   RAM_KB="$(awk '/MemTotal:/ {print $2}' /proc/meminfo)"
   RAM_GB=$(( RAM_KB / 1024 / 1024 ))
 fi
-[ "$RAM_GB" -ge "$MIN_RAM_GB" ] || fail "This setup needs at least $MIN_RAM_GB GB RAM. Detected about $RAM_GB GB."
+awk -v have="$RAM_GB" -v need="$MIN_RAM_GB" 'BEGIN { exit !((have+0) >= (need+0)) }' || fail "This setup needs at least $MIN_RAM_GB GB RAM. Detected about $RAM_GB GB."
 
 TMP="$(mktemp -d)"
 SERVER_PID=""
