@@ -1,0 +1,65 @@
+name: Build paid delivery ZIPs
+
+on:
+  workflow_dispatch:
+
+permissions:
+  actions: read
+  contents: read
+
+jobs:
+  build-paid-delivery:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Download latest formal release artifact
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          mkdir -p release
+          gh run download 39357880330             --repo "${GITHUB_REPOSITORY}"             --name global-installer-release-catalog             --dir release
+
+      - name: Verify release inputs
+        run: |
+          test -f release/site-download-manifest.json
+          test -d release/profiles
+          find release/profiles -maxdepth 1 -type f -print
+          python - <<'PY'
+          import json
+          from pathlib import Path
+          m=json.loads(Path("release/site-download-manifest.json").read_text())
+          assert m["package_count"] == 5, m["package_count"]
+          assert m["released_route_count"] == 368, m["released_route_count"]
+          print("Release input verified: 5 packages / 368 released routes")
+          PY
+
+      - name: Build customer delivery ZIPs
+        run: |
+          python build/build-paid-delivery-zips.py             --manifest release/site-download-manifest.json             --artifact-root release             --output-dir paid-delivery
+
+      - name: Inspect customer ZIP contents
+        run: |
+          python - <<'PY'
+          import json, zipfile
+          from pathlib import Path
+          m=json.loads(Path("paid-delivery/delivery-manifest.json").read_text())
+          assert m["package_count"] == 5
+          assert m["released_route_count"] == 368
+          for p in Path("paid-delivery").glob("*.zip"):
+              with zipfile.ZipFile(p) as z:
+                  names=set(z.namelist())
+                  assert "READ_ME_FIRST.txt" in names
+                  assert "LOCAL_INTEGRATION.txt" in names
+                  assert any(n in names for n in ("AntigravityLocalSetup.exe","AntigravityLocalSetup.pkg"))
+                  assert len(names) == 3
+          print("Customer delivery ZIP inspection passed.")
+          PY
+
+      - uses: actions/upload-artifact@v4
+        with:
+          name: production-paid-delivery-zips
+          path: paid-delivery/*
+          if-no-files-found: error
+          retention-days: 30
