@@ -29,7 +29,11 @@ jobs:
         include:
           - os: macos-latest
             platform: macos
-            profile: macos-ollama-gemma4-e2b
+            profile: macos-ollama-qwen3-1.7b
+            test_model: qwen3:0.6b
+          - os: macos-latest
+            platform: macos
+            profile: macos-ollama-qwen3-4b
             test_model: qwen3:0.6b
           - os: ubuntu-latest
             platform: linux
