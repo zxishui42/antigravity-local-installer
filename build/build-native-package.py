@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-import argparse, os, shutil, stat, subprocess, tarfile, tempfile
+import argparse, os, re, shutil, stat, subprocess, tarfile, tempfile
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
@@ -7,12 +7,24 @@ ROOT=Path(__file__).resolve().parents[1]
 def run(cmd):
     subprocess.run(cmd, check=True)
 
-def build_payload(profile_id, outdir):
+def build_payload(profile_id, outdir, ci_min_ram_gb=None):
     run(["python3", str(ROOT/"build/build-unix-profile.py"), "--profile-id", profile_id, "--output-dir", str(outdir)])
-    return outdir/f"{profile_id}-payload", outdir/f"{profile_id}.tar.gz"
+    payload=outdir/f"{profile_id}-payload"
+    if ci_min_ram_gb is not None:
+        if os.environ.get("CI","").lower()!="true":
+            raise SystemExit("--ci-min-ram-gb is only allowed inside CI.")
+        env_path=payload/"profile.env"
+        text=env_path.read_text()
+        replacement="MIN_RAM_GB='"+str(ci_min_ram_gb)+"'"
+        text,count=re.subn(r"^MIN_RAM_GB=.*$",replacement,text,flags=re.M)
+        if count!=1:
+            raise SystemExit("Could not apply CI RAM override to profile.env.")
+        env_path.write_text(text)
+        print(f"CI only: package RAM preflight overridden to {ci_min_ram_gb} GB.")
+    return payload, outdir/f"{profile_id}.tar.gz"
 
-def build_linux(profile_id, outdir):
-    payload, tar_path=build_payload(profile_id,outdir)
+def build_linux(profile_id, outdir, ci_min_ram_gb=None):
+    payload, tar_path=build_payload(profile_id,outdir,ci_min_ram_gb)
     target=outdir/f"{profile_id}.run"
     stub='''#!/usr/bin/env bash
 set -euo pipefail
@@ -33,8 +45,8 @@ __ANTIGRAVITY_PAYLOAD_BELOW__
     target.chmod(target.stat().st_mode | stat.S_IXUSR | stat.S_IXGRP | stat.S_IXOTH)
     print(target)
 
-def build_macos(profile_id, outdir):
-    payload, _=build_payload(profile_id,outdir)
+def build_macos(profile_id, outdir, ci_min_ram_gb=None):
+    payload, _=build_payload(profile_id,outdir,ci_min_ram_gb)
     if shutil.which("pkgbuild") is None:
         raise SystemExit("pkgbuild is required on macOS.")
     stage=Path(tempfile.mkdtemp(prefix="ag-pkg-"))
@@ -111,10 +123,11 @@ def main():
     ap.add_argument("--profile-id",required=True)
     ap.add_argument("--platform",choices=["linux","macos"],required=True)
     ap.add_argument("--output-dir",default=str(ROOT/"dist"/"native"))
+    ap.add_argument("--ci-min-ram-gb",type=float,default=None,help="CI-only package preflight override; never used for production releases")
     args=ap.parse_args()
     out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
-    if args.platform=="linux": build_linux(args.profile_id,out)
-    else: build_macos(args.profile_id,out)
+    if args.platform=="linux": build_linux(args.profile_id,out,args.ci_min_ram_gb)
+    else: build_macos(args.profile_id,out,args.ci_min_ram_gb)
 
 if __name__=="__main__":
     main()
