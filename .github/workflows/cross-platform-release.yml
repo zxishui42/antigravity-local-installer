@@ -123,6 +123,10 @@ jobs:
       - name: Generate website download manifest
         shell: bash
         run: python3 build/generate-download-manifest.py --catalog dist/installer-catalog.json --routing dist/site-installer-routing.json --output dist/site-download-manifest.json
+
+      - name: Verify website download manifest keeps every route state
+        shell: bash
+        run: python3 tests/download-manifest.py --manifest dist/site-download-manifest.json --routing dist/site-installer-routing.json
       - uses: actions/upload-artifact@v4
         with:
           name: global-installer-release-catalog
