@@ -1,0 +1,22 @@
+{
+  "$schema": "node_modules/wrangler/config-schema.json",
+  "name": "antigravitymodels-prod",
+  "main": "src/index.js",
+  "compatibility_date": "2026-10-20",
+  "d1_databases": [
+    {
+      "binding": "ORDERS_DB",
+      "database_name": "antigravity-orders-prod",
+      "database_id": "0ac172b1-f917-4f00-8dfc-d98abb866422"
+    }
+  ],
+  "vars": {
+    "PUBLIC_BASE_URL": "https://antigravitylocalmodels.com",
+    "WAFFO_PRODUCT_ID": "PROD_47Yscc6M6VkB90yjfDREDW",
+    "WAFFO_PRODUCT_NAME": "Antigravity Local Setup Pack",
+    "WAFFO_CURRENCY": "USD",
+    "WAFFO_EXPECTED_SUBTOTAL": "5.60",
+    "WAFFO_MERCHANT_ID": "MER_5zhX1tCaELKMzgeDiKy1Yr",
+    "DOWNLOAD_TOKEN_TTL_SECONDS": "3600"
+  }
+}
