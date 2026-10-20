@@ -266,10 +266,10 @@
       "fallback_required_gb": 8,
       "priority": 200,
       "verified": true,
-      "release": true,
-      "verification_status": "released_after_native_e2e_and_real_gemma4_e2b",
+      "release": false,
+      "verification_status": "engine_and_run_package_validated_customer_clickable_delivery_pending",
       "source_url": "https://antigravitylocalmodels.com/",
-      "release_gate": "native_e2e_and_real_gemma4_e2b",
+      "release_gate": "customer_clickable_linux_delivery_and_real_gemma4_e2b",
       "validation_evidence": {
         "environment": "GitHub Ubuntu native runner",
         "workflow_run_id": 39288405888,
