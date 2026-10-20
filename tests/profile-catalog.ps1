@@ -75,11 +75,15 @@ Assert-True ($null -ne $cpu32 -and $cpu32.profile_id -eq 'windows-ollama-gemma4-
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'pending_validation' -and $gpu24.profile_id -eq 'windows-litert-gemma4-26b') '24 GB automatic NVIDIA config should be tracked as pending LiteRT validation.'
 
+$macQ17Profile=@($profiles | Where-Object { $_.id -eq 'macos-ollama-qwen3-1.7b' } | Select-Object -First 1)[0]
+$macQ17Expected=if($macQ17Profile -and [bool]$macQ17Profile.verified -and [bool]$macQ17Profile.release){'installer_available'}else{'pending_validation'}
 $mac8=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 8 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $mac8 -and $mac8.status -eq 'pending_validation' -and $mac8.profile_id -eq 'macos-ollama-qwen3-1.7b') 'macOS Apple Silicon 8 GB Automatic should map to the pending Qwen3 1.7B profile.'
+Assert-True ($null -ne $mac8 -and $mac8.status -eq $macQ17Expected -and $mac8.profile_id -eq 'macos-ollama-qwen3-1.7b') 'macOS Apple Silicon 8 GB Automatic did not map to the Qwen3 1.7B release state.'
 
+$macQ4Profile=@($profiles | Where-Object { $_.id -eq 'macos-ollama-qwen3-4b' } | Select-Object -First 1)[0]
+$macQ4Expected=if($macQ4Profile -and [bool]$macQ4Profile.verified -and [bool]$macQ4Profile.release){'installer_available'}else{'pending_validation'}
 $mac16=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 16 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $mac16 -and $mac16.status -eq 'pending_validation' -and $mac16.profile_id -eq 'macos-ollama-qwen3-4b') 'macOS Apple Silicon 16 GB Automatic should map to the pending Qwen3 4B profile.'
+Assert-True ($null -ne $mac16 -and $mac16.status -eq $macQ4Expected -and $mac16.profile_id -eq 'macos-ollama-qwen3-4b') 'macOS Apple Silicon 16 GB Automatic did not map to the Qwen3 4B release state.'
 
 $macCpu=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'cpu-only' -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $macCpu -and $macCpu.status -eq 'pending_product_definition' -and [string]::IsNullOrWhiteSpace([string]$macCpu.profile_id)) 'macOS CPU-only must not receive an arm64 package without architecture information.'
