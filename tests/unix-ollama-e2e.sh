@@ -9,7 +9,7 @@ mkdir -p "$OUT"
 python3 "$ROOT_DIR/build/build-unix-profile.py" --profile-id "$PROFILE_ID" --output-dir "$OUT"
 
 PAYLOAD="$OUT/$PROFILE_ID-payload"
-TEST_ROOT="$RUNNER_TEMP/antigravity-unix-e2e-$PROFILE_ID"
+TEST_ROOT="${ANTIGRAVITY_E2E_INSTALL_ROOT:-$RUNNER_TEMP/antigravity-unix-e2e-$PROFILE_ID}"
 rm -rf "$TEST_ROOT"
 
 # Keep the native runtime path real, but use a small model so this job validates the production engine quickly.
