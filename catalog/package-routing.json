@@ -489,7 +489,8 @@
       },
       "status": "pending_validation",
       "final_check": "native_pkg_install_and_real_qwen3_4b",
-      "profile_id": "macos-ollama-qwen3-4b"
+      "profile_id": "macos-ollama-qwen3-4b",
+      "fallback_profile_id": "macos-ollama-qwen3-1.7b"
     },
     {
       "id": "macos-apple-auto-16to23-qwen4b",
@@ -509,7 +510,8 @@
       },
       "status": "pending_validation",
       "final_check": "native_pkg_install_and_real_qwen3_4b",
-      "profile_id": "macos-ollama-qwen3-4b"
+      "profile_id": "macos-ollama-qwen3-4b",
+      "fallback_profile_id": "macos-ollama-qwen3-1.7b"
     },
     {
       "id": "macos-cpu-ollama-needs-arch-definition",
@@ -545,6 +547,7 @@
     "macOS Apple Silicon Automatic uses Qwen3 1.7B at 8–15 GB, Qwen3 4B at 16–23 GB, and LiteRT + Gemma 4 26B at 24 GB+ once each package gate passes.",
     "The previous macOS Gemma 4 E2B Ollama candidate is not routed to lower-memory Macs because the real macOS runner showed that model could not start with only about 4.2 GiB available after overhead.",
     "macOS CPU-only remains a product-definition gap because the live selector does not identify CPU architecture, so an arm64-only package must not be sent blindly.",
-    "Windows CPU-only 8 GB now targets the smaller Qwen3 1.7B candidate instead of Gemma 4 E2B; release still requires a real 8 GB Windows validation."
+    "Windows CPU-only 8 GB now targets the smaller Qwen3 1.7B candidate instead of Gemma 4 E2B; release still requires a real 8 GB Windows validation.",
+    "If the macOS Qwen3 4B tier is still pending but the Qwen3 1.7B tier is released, 16–23 GB Ollama configurations may use the released 1.7B installer as an explicit lower-tier fallback instead of being blocked."
   ]
 }
