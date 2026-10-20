@@ -2,6 +2,13 @@ name: Paid delivery API CI
 
 on:
   workflow_dispatch:
+  pull_request:
+    branches: [main]
+    paths:
+      - 'delivery/**'
+      - 'web/checkout-delivery.js'
+      - 'tests/test-delivery-core.py'
+      - '.github/workflows/delivery-api-ci.yml'
   push:
     branches: [main]
     paths:
@@ -11,7 +18,7 @@ on:
       - '.github/workflows/delivery-api-ci.yml'
 
 concurrency:
-  group: paid-delivery-api-main
+  group: paid-delivery-api-${{ github.ref }}
   cancel-in-progress: true
 
 jobs:
