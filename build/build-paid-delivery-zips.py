@@ -202,10 +202,16 @@ def main() -> None:
         zip_name = f"{profile_id}.zip"
         zip_path = out / zip_name
 
-        with zipfile.ZipFile(zip_path, "w", compression=zipfile.ZIP_DEFLATED, compresslevel=9) as zf:
-            zf.write(source, installer_name)
-            zf.writestr("READ_ME_FIRST.txt", readme)
-            zf.writestr("LOCAL_INTEGRATION.txt", integration)
+        def write_bytes(zf, name, data, executable=False):
+            info = zipfile.ZipInfo(name, date_time=(2026, 10, 20, 0, 0, 0))
+            info.compress_type = zipfile.ZIP_DEFLATED
+            info.external_attr = ((0o755 if executable else 0o644) & 0xFFFF) << 16
+            zf.writestr(info, data, compress_type=zipfile.ZIP_DEFLATED, compresslevel=9)
+
+        with zipfile.ZipFile(zip_path, "w") as zf:
+            write_bytes(zf, installer_name, source.read_bytes(), executable=(platform == "windows"))
+            write_bytes(zf, "READ_ME_FIRST.txt", readme.encode("utf-8"))
+            write_bytes(zf, "LOCAL_INTEGRATION.txt", integration.encode("utf-8"))
 
         with zipfile.ZipFile(zip_path) as zf:
             names = sorted(zf.namelist())
