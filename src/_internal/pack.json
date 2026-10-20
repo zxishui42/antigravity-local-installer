@@ -377,6 +377,26 @@
       "verification_status": "candidate_requires_final_pkg_install_and_real_qwen3_4b",
       "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/4b",
       "release_gate": "native_pkg_install_and_real_qwen3_4b"
+    },
+    {
+      "id": "windows-ollama-qwen3-1.7b-cpu-8gb",
+      "install_folder": "qwen3-1.7b-cpu-8gb",
+      "title": "Antigravity Local — Windows CPU Qwen3 1.7B",
+      "os": "Windows 10/11 x64",
+      "route": "Ollama",
+      "model": "qwen3:1.7b",
+      "model_label": "Qwen3 1.7B",
+      "min_ram_gb": 8,
+      "gpu_vendor": "cpu-only",
+      "registry_manifest_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/1.7b",
+      "app_overhead_gb": 2.5,
+      "fallback_required_gb": 5,
+      "priority": 155,
+      "verified": false,
+      "release": false,
+      "verification_status": "candidate_requires_ci_then_physical_windows_8gb",
+      "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/1.7b",
+      "release_gate": "integration_and_physical_windows_8gb"
     }
   ]
 }
