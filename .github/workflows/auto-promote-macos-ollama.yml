@@ -2,7 +2,7 @@ name: Auto-promote validated macOS Ollama tiers
 
 on:
   workflow_run:
-    workflows: ["Native Ollama real-model validation"]
+    workflows: ["Native macOS Ollama real-model validation"]
     types: [completed]
 
 permissions:
@@ -53,7 +53,7 @@ jobs:
                   raise SystemExit(f"Gate mismatch for {profile_id}: {p.get('release_gate')} != {gate}")
 
               evidence={
-                  "workflow":"Native Ollama real-model validation",
+                  "workflow":"Native macOS Ollama real-model validation",
                   "workflow_run_id":int(os.environ["VALIDATION_RUN_ID"]),
                   "workflow_head_sha":os.environ["VALIDATION_HEAD_SHA"],
                   "validated_path":"native engine + production model + final macOS pkg install",
