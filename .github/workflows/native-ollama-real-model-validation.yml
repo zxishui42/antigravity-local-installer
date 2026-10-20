@@ -19,11 +19,21 @@ jobs:
         include:
           - os: macos-latest
             platform: macos
-            profile: macos-ollama-gemma4-e2b
+            profile: macos-ollama-qwen3-1.7b
+            model: qwen3:1.7b
+            install_folder: qwen3-1.7b
             port: 11541
+          - os: macos-latest
+            platform: macos
+            profile: macos-ollama-qwen3-4b
+            model: qwen3:4b
+            install_folder: qwen3-4b
+            port: 11544
           - os: ubuntu-latest
             platform: linux
             profile: linux-ollama-gemma4-e2b
+            model: gemma4:e2b
+            install_folder: gemma4-e2b
             port: 11542
     runs-on: ${{ matrix.os }}
     timeout-minutes: 70
@@ -33,11 +43,11 @@ jobs:
       - name: Run full native install with production Gemma 4 E2B
         shell: bash
         env:
-          ANTIGRAVITY_E2E_MODEL: gemma4:e2b
+          ANTIGRAVITY_E2E_MODEL: ${{ matrix.model }}
           ANTIGRAVITY_TEST_PORT: ${{ matrix.port }}
         run: |
           if [ "${{ matrix.platform }}" = "macos" ]; then
-            export ANTIGRAVITY_E2E_INSTALL_ROOT="$HOME/Library/Application Support/AntigravityLocal/gemma4-e2b"
+            export ANTIGRAVITY_E2E_INSTALL_ROOT="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}"
           fi
           bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
 
@@ -71,12 +81,12 @@ jobs:
           test -s "$pkg"
           pkgutil --payload-files "$pkg" | grep -q 'install.sh'
           sudo installer -pkg "$pkg" -target /
-          state="$HOME/Library/Application Support/AntigravityLocal/gemma4-e2b/install-state.json"
+          state="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}/install-state.json"
           test -f "$state"
-          python3 - "$state" <<'PY'
-          import json,sys
+          PROFILE="${{ matrix.profile }}" MODEL="${{ matrix.model }}" python3 - "$state" <<'PY'
+          import json,os,sys
           data=json.load(open(sys.argv[1]))
-          assert data["profile"]=="macos-ollama-gemma4-e2b", data
-          assert data["model"]=="gemma4:e2b", data
-          print("FINAL MACOS PKG PASSED")
+          assert data["profile"]==os.environ["PROFILE"], data
+          assert data["model"]==os.environ["MODEL"], data
+          print("FINAL MACOS PKG PASSED:", data["profile"], data["model"])
           PY
