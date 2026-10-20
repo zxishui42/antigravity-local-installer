@@ -303,9 +303,14 @@
       "priority": 600,
       "verified": false,
       "release": false,
-      "verification_status": "candidate_requires_24gb_apple_silicon",
+      "verification_status": "native_litert_engine_and_pkg_build_passed_physical_24gb_pending",
       "source_url": "https://www.antigravity.google/docs/sdk/local-models/",
-      "release_gate": "native_e2e_and_physical_24gb_apple_silicon"
+      "release_gate": "native_e2e_and_physical_24gb_apple_silicon",
+      "engine_validation_evidence": {
+        "workflow": "Native macOS and Linux installer E2E",
+        "workflow_run_id": 39347982563,
+        "result": "success"
+      }
     },
     {
       "id": "linux-litert-gemma4-26b",
@@ -330,9 +335,14 @@
       "priority": 600,
       "verified": false,
       "release": false,
-      "verification_status": "candidate_requires_24gb_nvidia_linux",
+      "verification_status": "native_litert_engine_and_run_build_passed_physical_nvidia_24gb_pending",
       "source_url": "https://www.antigravity.google/docs/sdk/local-models/",
-      "release_gate": "native_e2e_and_physical_nvidia_24gb"
+      "release_gate": "native_e2e_and_physical_nvidia_24gb",
+      "engine_validation_evidence": {
+        "workflow": "Native macOS and Linux installer E2E",
+        "workflow_run_id": 39347982563,
+        "result": "success"
+      }
     },
     {
       "id": "macos-ollama-qwen3-1.7b",
@@ -352,9 +362,14 @@
       "priority": 210,
       "verified": false,
       "release": false,
-      "verification_status": "candidate_requires_final_pkg_install_and_real_qwen3_1_7b",
+      "verification_status": "native_engine_and_package_build_passed_real_model_pkg_pending",
       "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/1.7b",
-      "release_gate": "native_pkg_install_and_real_qwen3_1_7b"
+      "release_gate": "native_pkg_install_and_real_qwen3_1_7b",
+      "engine_validation_evidence": {
+        "workflow": "Native macOS and Linux installer E2E",
+        "workflow_run_id": 39347982563,
+        "result": "success"
+      }
     },
     {
       "id": "macos-ollama-qwen3-4b",
@@ -374,9 +389,14 @@
       "priority": 220,
       "verified": false,
       "release": false,
-      "verification_status": "candidate_requires_final_pkg_install_and_real_qwen3_4b",
+      "verification_status": "native_engine_and_package_build_passed_real_model_pkg_pending",
       "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/4b",
-      "release_gate": "native_pkg_install_and_real_qwen3_4b"
+      "release_gate": "native_pkg_install_and_real_qwen3_4b",
+      "engine_validation_evidence": {
+        "workflow": "Native macOS and Linux installer E2E",
+        "workflow_run_id": 39347982563,
+        "result": "success"
+      }
     },
     {
       "id": "windows-ollama-qwen3-1.7b-cpu-8gb",
