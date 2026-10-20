@@ -51,14 +51,49 @@ def build_macos(profile_id, outdir):
         install_path=f"/Library/Application Support/AntigravityLocal/Installer/{profile_id}/install.sh"
         post.write_text(f'''#!/bin/bash
 set -e
-CONSOLE_USER="$(stat -f %Su /dev/console)"
-if [ -z "$CONSOLE_USER" ] || [ "$CONSOLE_USER" = "root" ] || [ "$CONSOLE_USER" = "loginwindow" ]; then
-  echo "No signed-in macOS user was found." >&2
+LOG_FILE="/var/tmp/antigravity-local-postinstall.log"
+exec >>"$LOG_FILE" 2>&1
+
+echo "[Antigravity Local] macOS package postinstall started."
+
+valid_user() {{
+  [ -n "$1" ] &&
+  [ "$1" != "root" ] &&
+  [ "$1" != "loginwindow" ] &&
+  /usr/bin/id "$1" >/dev/null 2>&1
+}}
+
+CONSOLE_USER="$(/usr/bin/stat -f %Su /dev/console 2>/dev/null || true)"
+
+if ! valid_user "$CONSOLE_USER"; then
+  for candidate in "${{SUDO_USER:-}}" "${{USER:-}}"; do
+    if valid_user "$candidate"; then
+      CONSOLE_USER="$candidate"
+      break
+    fi
+  done
+fi
+
+if ! valid_user "$CONSOLE_USER"; then
+  CONSOLE_USER="$(/usr/bin/dscl . -list /Users UniqueID 2>/dev/null | /usr/bin/awk '$2 >= 501 && $1 !~ /^_/ {{print $1, $2}}' | /usr/bin/sort -nk2 | /usr/bin/awk 'NR==1 {{print $1}}')"
+fi
+
+if ! valid_user "$CONSOLE_USER"; then
+  echo "[Antigravity Local] No usable macOS user account was found." >&2
   exit 1
 fi
-USER_HOME="$(dscl . -read "/Users/$CONSOLE_USER" NFSHomeDirectory | awk '{{print $2}}')"
-[ -n "$USER_HOME" ] || exit 1
-/usr/bin/sudo -u "$CONSOLE_USER" /usr/bin/env HOME="$USER_HOME" /bin/bash {install_path!r}
+
+USER_HOME="$(/usr/bin/dscl . -read "/Users/$CONSOLE_USER" NFSHomeDirectory 2>/dev/null | /usr/bin/awk '{{print $2}}')"
+if [ -z "$USER_HOME" ] || [ ! -d "$USER_HOME" ]; then
+  echo "[Antigravity Local] Home folder could not be resolved for $CONSOLE_USER." >&2
+  exit 1
+fi
+
+echo "[Antigravity Local] Installing for user: $CONSOLE_USER"
+echo "[Antigravity Local] User home: $USER_HOME"
+
+/usr/bin/sudo -H -u "$CONSOLE_USER" /usr/bin/env HOME="$USER_HOME" USER="$CONSOLE_USER" LOGNAME="$CONSOLE_USER" /bin/bash {install_path!r}
+echo "[Antigravity Local] macOS package postinstall completed."
 ''')
         os.chmod(post,0o755)
 
