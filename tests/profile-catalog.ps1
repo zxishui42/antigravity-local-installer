@@ -75,8 +75,14 @@ Assert-True ($null -ne $cpu32 -and $cpu32.profile_id -eq 'windows-ollama-gemma4-
 $gpu24=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'nvidia' -and [int]$_.vram_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $gpu24 -and $gpu24.status -eq 'pending_validation' -and $gpu24.profile_id -eq 'windows-litert-gemma4-26b') '24 GB automatic NVIDIA config should be tracked as pending LiteRT validation.'
 
+$mac8=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 8 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $mac8 -and $mac8.status -eq 'pending_validation' -and $mac8.profile_id -eq 'macos-ollama-qwen3-1.7b') 'macOS Apple Silicon 8 GB Automatic should map to the pending Qwen3 1.7B profile.'
+
 $mac16=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 16 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $mac16 -and $mac16.status -eq 'pending_validation' -and $mac16.profile_id -eq 'macos-ollama-gemma4-e2b') 'macOS Apple Silicon 16 GB Automatic should map to the pending Ollama profile.'
+Assert-True ($null -ne $mac16 -and $mac16.status -eq 'pending_validation' -and $mac16.profile_id -eq 'macos-ollama-qwen3-4b') 'macOS Apple Silicon 16 GB Automatic should map to the pending Qwen3 4B profile.'
+
+$macCpu=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'cpu-only' -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
+Assert-True ($null -ne $macCpu -and $macCpu.status -eq 'pending_product_definition' -and [string]::IsNullOrWhiteSpace([string]$macCpu.profile_id)) 'macOS CPU-only must not receive an arm64 package without architecture information.'
 
 $mac24=@($out.configurations | Where-Object { $_.os -eq 'macos' -and $_.graphics -eq 'apple-silicon' -and [int]$_.memory_gb -eq 24 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $mac24 -and $mac24.status -eq 'pending_validation' -and $mac24.profile_id -eq 'macos-litert-gemma4-26b') 'macOS Apple Silicon 24 GB Automatic should map to the pending LiteRT profile.'
