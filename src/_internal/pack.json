@@ -360,15 +360,23 @@
       "app_overhead_gb": 2.5,
       "fallback_required_gb": 5,
       "priority": 210,
-      "verified": false,
-      "release": false,
-      "verification_status": "native_engine_and_package_build_passed_real_model_pkg_pending",
+      "verified": true,
+      "release": true,
+      "verification_status": "released_after_native_pkg_install_and_real_qwen3_1_7b",
       "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/1.7b",
       "release_gate": "native_pkg_install_and_real_qwen3_1_7b",
       "engine_validation_evidence": {
         "workflow": "Native macOS and Linux installer E2E",
         "workflow_run_id": 39347982563,
         "result": "success"
+      },
+      "validation_evidence": {
+        "workflow": "Native macOS Ollama real-model validation",
+        "workflow_run_id": 39352681213,
+        "workflow_head_sha": "ec8f879d1b00d4328745ddf481c3d3db8132ae3f",
+        "validated_path": "production model executed successfully on the macOS CI host; final pkg installed successfully with CI-only RAM preflight override; production package keeps its real RAM gate",
+        "job_conclusion": "success",
+        "ci_ram_preflight_override_gb": 1
       }
     },
     {
@@ -387,15 +395,23 @@
       "app_overhead_gb": 2.5,
       "fallback_required_gb": 6.5,
       "priority": 220,
-      "verified": false,
-      "release": false,
-      "verification_status": "native_engine_and_package_build_passed_real_model_pkg_pending",
+      "verified": true,
+      "release": true,
+      "verification_status": "released_after_native_pkg_install_and_real_qwen3_4b",
       "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/4b",
       "release_gate": "native_pkg_install_and_real_qwen3_4b",
       "engine_validation_evidence": {
         "workflow": "Native macOS and Linux installer E2E",
         "workflow_run_id": 39347982563,
         "result": "success"
+      },
+      "validation_evidence": {
+        "workflow": "Native macOS Ollama real-model validation",
+        "workflow_run_id": 39352681213,
+        "workflow_head_sha": "ec8f879d1b00d4328745ddf481c3d3db8132ae3f",
+        "validated_path": "production model executed successfully on the macOS CI host; final pkg installed successfully with CI-only RAM preflight override; production package keeps its real RAM gate",
+        "job_conclusion": "success",
+        "ci_ram_preflight_override_gb": 1
       }
     },
     {

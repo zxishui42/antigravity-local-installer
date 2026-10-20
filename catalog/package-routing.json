@@ -448,8 +448,8 @@
         "min_memory_gb": 8,
         "max_memory_gb": 15
       },
-      "status": "pending_validation",
-      "final_check": "native_pkg_install_and_real_qwen3_1_7b",
+      "status": "installer_available",
+      "final_check": "installer",
       "profile_id": "macos-ollama-qwen3-1.7b"
     },
     {
@@ -468,8 +468,8 @@
         "min_memory_gb": 8,
         "max_memory_gb": 15
       },
-      "status": "pending_validation",
-      "final_check": "native_pkg_install_and_real_qwen3_1_7b",
+      "status": "installer_available",
+      "final_check": "installer",
       "profile_id": "macos-ollama-qwen3-1.7b"
     },
     {
@@ -487,8 +487,8 @@
         ],
         "min_memory_gb": 16
       },
-      "status": "pending_validation",
-      "final_check": "native_pkg_install_and_real_qwen3_4b",
+      "status": "installer_available",
+      "final_check": "installer",
       "profile_id": "macos-ollama-qwen3-4b",
       "fallback_profile_id": "macos-ollama-qwen3-1.7b"
     },
@@ -508,8 +508,8 @@
         "min_memory_gb": 16,
         "max_memory_gb": 23
       },
-      "status": "pending_validation",
-      "final_check": "native_pkg_install_and_real_qwen3_4b",
+      "status": "installer_available",
+      "final_check": "installer",
       "profile_id": "macos-ollama-qwen3-4b",
       "fallback_profile_id": "macos-ollama-qwen3-1.7b"
     },
