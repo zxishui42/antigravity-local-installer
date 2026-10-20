@@ -49,9 +49,9 @@ jobs:
           fi
           bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
 
-      - name: Build native production package
+      - name: Build native package with CI-only RAM preflight override
         shell: bash
-        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native-real
+        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native-real --ci-min-ram-gb 1
 
       - name: Execute final macOS pkg against the validated private install
         if: matrix.platform == 'macos'
