@@ -123,7 +123,7 @@ def main():
     ap.add_argument("--profile-id",required=True)
     ap.add_argument("--platform",choices=["linux","macos"],required=True)
     ap.add_argument("--output-dir",default=str(ROOT/"dist"/"native"))
-    ap.add_argument("--ci-min-ram-gb",type=float,default=None,help="CI-only package preflight override; never used for production releases")
+    ap.add_argument("--ci-min-ram-gb",type=int,default=None,help="CI-only package preflight override; never used for production releases")
     args=ap.parse_args()
     out=Path(args.output_dir); out.mkdir(parents=True,exist_ok=True)
     if args.platform=="linux": build_linux(args.profile_id,out,args.ci_min_ram_gb)
