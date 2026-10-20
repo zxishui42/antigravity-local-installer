@@ -100,6 +100,6 @@ $amdLiteRT=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.gr
 Assert-True ($null -ne $amdLiteRT -and $amdLiteRT.status -eq 'unsupported_route') 'AMD explicit LiteRT should be marked unsupported.'
 
 $cpu8=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 8 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
-Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'pending_validation' -and $cpu8.profile_id -eq 'windows-ollama-gemma4-e2b-cpu-8gb') 'Windows CPU-only 8 GB should be pending physical validation.'
+Assert-True ($null -ne $cpu8 -and $cpu8.status -eq 'pending_validation' -and $cpu8.profile_id -eq 'windows-ollama-qwen3-1.7b-cpu-8gb') 'Windows CPU-only 8 GB should use the smaller Qwen3 1.7B candidate and remain pending physical validation.'
 
 Write-Host ("PROFILE / ROUTING CATALOG PASSED: "+$out.configuration_count+" configurations, "+$out.installer_available_count+" installer-ready.")
