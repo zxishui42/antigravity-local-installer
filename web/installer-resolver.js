@@ -19,6 +19,16 @@ export function resolveInstaller(manifest, input) {
     return { status: "no_released_installer" };
   }
 
+  if (route.status && route.status !== "installer_available") {
+    return {
+      status: route.status,
+      profileId: route.profile_id || null,
+      finalCheck: route.final_check || null,
+      requiredRamGb: route.required_ram_gb == null ? null : Number(route.required_ram_gb),
+      requiredVramGb: route.required_vram_gb == null ? null : Number(route.required_vram_gb),
+    };
+  }
+
   if (route.required_ram_gb != null) {
     if (systemRamGb == null) {
       return {
