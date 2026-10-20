@@ -47,6 +47,9 @@ def main():
             raise SystemExit(f"Status mismatch for {k}: {source.get('status')} != {item.get('status')}")
         if item.get("profile_id")!=source.get("profile_id"):
             raise SystemExit(f"Profile mismatch for {k}")
+        for field in ("preferred_profile_id","fallback_profile_id","fallback_used"):
+            if item.get(field)!=source.get(field):
+                raise SystemExit(f"{field} mismatch for {k}: {source.get(field)} != {item.get(field)}")
         if item.get("final_check")!=source.get("final_check"):
             raise SystemExit(f"Final-check mismatch for {k}")
 
