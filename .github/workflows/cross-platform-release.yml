@@ -138,3 +138,16 @@ jobs:
             dist/site-download-manifest.json
             dist/profiles/*
           if-no-files-found: error
+
+      - name: Upload production paid-delivery bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: antigravity-paid-delivery-bundle
+          path: |
+            delivery/
+            web/installer-resolver.js
+            web/checkout-delivery.js
+            dist/installer-catalog.json
+            dist/site-download-manifest.json
+            dist/profiles/*
+          if-no-files-found: error
