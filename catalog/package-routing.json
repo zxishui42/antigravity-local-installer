@@ -251,43 +251,6 @@
       "final_check": "use_ollama_instead"
     },
     {
-      "id": "macos-apple-ollama",
-      "priority": 200,
-      "match": {
-        "os": [
-          "macos"
-        ],
-        "graphics": [
-          "apple-silicon"
-        ],
-        "runtime": [
-          "ollama"
-        ]
-      },
-      "status": "pending_validation",
-      "final_check": "native_installer_e2e",
-      "profile_id": "macos-ollama-gemma4-e2b"
-    },
-    {
-      "id": "macos-apple-auto-ollama-under24",
-      "priority": 250,
-      "match": {
-        "os": [
-          "macos"
-        ],
-        "graphics": [
-          "apple-silicon"
-        ],
-        "runtime": [
-          "automatic"
-        ],
-        "max_memory_gb": 23
-      },
-      "status": "pending_validation",
-      "final_check": "native_installer_e2e",
-      "profile_id": "macos-ollama-gemma4-e2b"
-    },
-    {
       "id": "macos-cpu-litert-unsupported",
       "priority": 700,
       "match": {
@@ -303,25 +266,6 @@
       },
       "status": "unsupported_route",
       "final_check": "use_ollama_instead"
-    },
-    {
-      "id": "macos-cpu-ollama",
-      "priority": 200,
-      "match": {
-        "os": [
-          "macos"
-        ],
-        "graphics": [
-          "cpu-only"
-        ],
-        "runtime": [
-          "automatic",
-          "ollama"
-        ]
-      },
-      "status": "pending_validation",
-      "final_check": "native_installer_e2e",
-      "profile_id": "macos-ollama-gemma4-e2b"
     },
     {
       "id": "linux-nvidia-auto-litert-24plus",
@@ -487,6 +431,103 @@
       "status": "pending_validation",
       "final_check": "customer_clickable_linux_delivery",
       "profile_id": "linux-ollama-gemma4-e2b"
+    },
+    {
+      "id": "macos-apple-ollama-8to15-qwen17",
+      "priority": 320,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "ollama"
+        ],
+        "min_memory_gb": 8,
+        "max_memory_gb": 15
+      },
+      "status": "pending_validation",
+      "final_check": "native_pkg_install_and_real_qwen3_1_7b",
+      "profile_id": "macos-ollama-qwen3-1.7b"
+    },
+    {
+      "id": "macos-apple-auto-8to15-qwen17",
+      "priority": 330,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "min_memory_gb": 8,
+        "max_memory_gb": 15
+      },
+      "status": "pending_validation",
+      "final_check": "native_pkg_install_and_real_qwen3_1_7b",
+      "profile_id": "macos-ollama-qwen3-1.7b"
+    },
+    {
+      "id": "macos-apple-ollama-16plus-qwen4b",
+      "priority": 320,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "ollama"
+        ],
+        "min_memory_gb": 16
+      },
+      "status": "pending_validation",
+      "final_check": "native_pkg_install_and_real_qwen3_4b",
+      "profile_id": "macos-ollama-qwen3-4b"
+    },
+    {
+      "id": "macos-apple-auto-16to23-qwen4b",
+      "priority": 330,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "apple-silicon"
+        ],
+        "runtime": [
+          "automatic"
+        ],
+        "min_memory_gb": 16,
+        "max_memory_gb": 23
+      },
+      "status": "pending_validation",
+      "final_check": "native_pkg_install_and_real_qwen3_4b",
+      "profile_id": "macos-ollama-qwen3-4b"
+    },
+    {
+      "id": "macos-cpu-ollama-needs-arch-definition",
+      "priority": 250,
+      "match": {
+        "os": [
+          "macos"
+        ],
+        "graphics": [
+          "cpu-only"
+        ],
+        "runtime": [
+          "automatic",
+          "ollama"
+        ]
+      },
+      "status": "pending_product_definition",
+      "final_check": "define_macos_cpu_architecture_before_package"
     }
   ],
   "default_status": "no_verified_installer",
@@ -500,6 +541,9 @@
     "Explicit LiteRT selections that the live checker rejects are classified unsupported_route instead of being counted as missing installer work.",
     "macOS and Linux package definitions now exist. Their website routes remain pending_validation until native installer E2E passes; LiteRT 26B also needs the target 24 GB+ accelerated hardware check before release.",
     "Linux Ollama Gemma 4 E2B was released after native Ubuntu real-model validation and successful execution of the final self-extracting .run package.",
-    "Linux Ollama engine and self-extracting .run package passed real-model validation, but customer delivery remains pending because a terminal-only .run file does not satisfy the one-click/no-command customer requirement."
+    "Linux Ollama engine and self-extracting .run package passed real-model validation, but customer delivery remains pending because a terminal-only .run file does not satisfy the one-click/no-command customer requirement.",
+    "macOS Apple Silicon Automatic uses Qwen3 1.7B at 8–15 GB, Qwen3 4B at 16–23 GB, and LiteRT + Gemma 4 26B at 24 GB+ once each package gate passes.",
+    "The previous macOS Gemma 4 E2B Ollama candidate is not routed to lower-memory Macs because the real macOS runner showed that model could not start with only about 4.2 GiB available after overhead.",
+    "macOS CPU-only remains a product-definition gap because the live selector does not identify CPU architecture, so an arm64-only package must not be sent blindly."
   ]
 }
