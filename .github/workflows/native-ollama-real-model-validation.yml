@@ -35,7 +35,11 @@ jobs:
         env:
           ANTIGRAVITY_E2E_MODEL: gemma4:e2b
           ANTIGRAVITY_TEST_PORT: ${{ matrix.port }}
-        run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
+        run: |
+          if [ "${{ matrix.platform }}" = "macos" ]; then
+            export ANTIGRAVITY_E2E_INSTALL_ROOT="$HOME/Library/Application Support/AntigravityLocal/gemma4-e2b"
+          fi
+          bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
 
       - name: Build native production package
         shell: bash
@@ -59,9 +63,20 @@ jobs:
           print("FINAL LINUX RUN PACKAGE PASSED")
           PY
 
-      - name: Verify macOS pkg was built
+      - name: Execute final macOS pkg against the validated private install
         if: matrix.platform == 'macos'
         shell: bash
         run: |
-          test -s "dist/native-real/${{ matrix.profile }}.pkg"
-          pkgutil --payload-files "dist/native-real/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
+          pkg="dist/native-real/${{ matrix.profile }}.pkg"
+          test -s "$pkg"
+          pkgutil --payload-files "$pkg" | grep -q 'install.sh'
+          sudo installer -pkg "$pkg" -target /
+          state="$HOME/Library/Application Support/AntigravityLocal/gemma4-e2b/install-state.json"
+          test -f "$state"
+          python3 - "$state" <<'PY'
+          import json,sys
+          data=json.load(open(sys.argv[1]))
+          assert data["profile"]=="macos-ollama-gemma4-e2b", data
+          assert data["model"]=="gemma4:e2b", data
+          print("FINAL MACOS PKG PASSED")
+          PY
