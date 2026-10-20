@@ -245,9 +245,9 @@
       "priority": 200,
       "verified": false,
       "release": false,
-      "verification_status": "candidate_native_macos_e2e",
+      "verification_status": "candidate_requires_final_pkg_install_and_real_gemma4_e2b",
       "source_url": "https://antigravitylocalmodels.com/",
-      "release_gate": "native_e2e_and_real_gemma4_e2b"
+      "release_gate": "native_pkg_install_and_real_gemma4_e2b"
     },
     {
       "id": "linux-ollama-gemma4-e2b",
