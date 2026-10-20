@@ -1,4 +1,4 @@
-name: Windows LiteRT production-path E2E
+name: Windows LiteRT package preflight
 
 on:
   workflow_dispatch:
@@ -10,17 +10,17 @@ on:
       - 'src/_internal/pack.json'
       - 'build/app.cs'
       - 'build/build-app.ps1'
-      - 'tests/windows-litert-endtoend.ps1'
+      - 'tests/litert-windows-preflight.ps1'
       - '.github/workflows/windows-litert-endtoend.yml'
 
 concurrency:
-  group: windows-litert-e2e-main
+  group: windows-litert-preflight-main
   cancel-in-progress: true
 
 jobs:
-  litert-e2e:
+  litert-preflight:
     runs-on: windows-latest
-    timeout-minutes: 45
+    timeout-minutes: 30
     steps:
       - name: Checkout
         uses: actions/checkout@v4
@@ -33,6 +33,16 @@ jobs:
         shell: powershell
         run: .\build\build-app.ps1
 
-      - name: Run full LiteRT production path with small CI model
+      - name: Validate Windows LiteRT runtime and production classes
         shell: powershell
-        run: .\tests\windows-litert-endtoend.ps1
+        run: .\tests\litert-windows-preflight.ps1
+
+      - name: Confirm physical GPU gate is still closed
+        shell: powershell
+        run: |
+          $cfg=Get-Content .\src\_internal\pack.json -Raw | ConvertFrom-Json
+          $p=@($cfg.profiles | Where-Object { $_.id -eq 'windows-litert-gemma4-26b' } | Select-Object -First 1)[0]
+          if($null -eq $p){throw 'Windows LiteRT production profile is missing.'}
+          if([bool]$p.verified){throw 'Windows LiteRT profile must not be released before physical NVIDIA 24GB+ validation.'}
+          if([string]$p.verification_status -notmatch 'physical_nvidia_24gb'){throw 'Windows LiteRT profile is missing its physical GPU validation gate.'}
+          Write-Host 'WINDOWS LITERT PACKAGE PREFLIGHT PASSED; PHYSICAL GPU RELEASE GATE REMAINS CLOSED.'
