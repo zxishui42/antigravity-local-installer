@@ -1,0 +1,41 @@
+name: Windows low-memory candidate validation
+
+on:
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'src/_internal/pack.json'
+      - 'tests/profile-model-validation.ps1'
+      - '.github/workflows/windows-low-memory-validation.yml'
+
+concurrency:
+  group: windows-low-memory-validation-main
+  cancel-in-progress: true
+
+jobs:
+  qwen17:
+    runs-on: windows-latest
+    timeout-minutes: 45
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Set up Python 3.12
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.12'
+
+      - name: Validate Qwen3 1.7B through Antigravity and Ollama
+        shell: powershell
+        run: .\tests\profile-model-validation.ps1 -ProfileId "windows-ollama-qwen3-1.7b-cpu-8gb"
+
+      - name: Keep physical 8 GB release gate closed
+        shell: powershell
+        run: |
+          $cfg=Get-Content .\src\_internal\pack.json -Raw | ConvertFrom-Json
+          $p=@($cfg.profiles | Where-Object { $_.id -eq 'windows-ollama-qwen3-1.7b-cpu-8gb' } | Select-Object -First 1)[0]
+          if($null -eq $p){throw 'Windows low-memory candidate is missing.'}
+          if([bool]$p.release){throw '8 GB package must not be released before physical 8 GB validation.'}
+          if([string]$p.release_gate -ne 'integration_and_physical_windows_8gb'){throw '8 GB physical release gate is missing.'}
+          Write-Host 'WINDOWS LOW-MEMORY INTEGRATION PASSED; PHYSICAL 8 GB GATE REMAINS CLOSED.'
