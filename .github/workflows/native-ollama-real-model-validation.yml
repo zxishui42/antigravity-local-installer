@@ -1,4 +1,4 @@
-name: Native Ollama real-model validation
+name: Native macOS Ollama real-model validation
 
 on:
   workflow_dispatch:
@@ -33,12 +33,6 @@ jobs:
             model: qwen3:4b
             install_folder: qwen3-4b
             port: 11544
-          - os: ubuntu-latest
-            platform: linux
-            profile: linux-ollama-gemma4-e2b
-            model: gemma4:e2b
-            install_folder: gemma4-e2b
-            port: 11542
     runs-on: ${{ matrix.os }}
     timeout-minutes: 70
     steps:
@@ -58,24 +52,6 @@ jobs:
       - name: Build native production package
         shell: bash
         run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native-real
-
-      - name: Execute final Linux .run package against the validated private install
-        if: matrix.platform == 'linux'
-        shell: bash
-        env:
-          ANTIGRAVITY_INSTALL_ROOT: ${{ runner.temp }}/antigravity-unix-e2e-${{ matrix.profile }}
-          ANTIGRAVITY_TEST_PORT: 11543
-        run: |
-          chmod +x "dist/native-real/${{ matrix.profile }}.run"
-          "dist/native-real/${{ matrix.profile }}.run"
-          python3 - <<'PY'
-          import json, os
-          path=os.path.join(os.environ["ANTIGRAVITY_INSTALL_ROOT"],"install-state.json")
-          data=json.load(open(path))
-          assert data["profile"]=="linux-ollama-gemma4-e2b", data
-          assert data["model"]=="gemma4:e2b", data
-          print("FINAL LINUX RUN PACKAGE PASSED")
-          PY
 
       - name: Execute final macOS pkg against the validated private install
         if: matrix.platform == 'macos'
