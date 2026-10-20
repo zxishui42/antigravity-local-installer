@@ -393,8 +393,8 @@
           "ollama"
         ]
       },
-      "status": "installer_available",
-      "final_check": "installer",
+      "status": "pending_validation",
+      "final_check": "customer_clickable_linux_delivery",
       "profile_id": "linux-ollama-gemma4-e2b"
     },
     {
@@ -412,8 +412,8 @@
         ],
         "max_vram_gb": 23
       },
-      "status": "installer_available",
-      "final_check": "installer",
+      "status": "pending_validation",
+      "final_check": "customer_clickable_linux_delivery",
       "profile_id": "linux-ollama-gemma4-e2b"
     },
     {
@@ -448,8 +448,8 @@
           "ollama"
         ]
       },
-      "status": "installer_available",
-      "final_check": "installer",
+      "status": "pending_validation",
+      "final_check": "customer_clickable_linux_delivery",
       "profile_id": "linux-ollama-gemma4-e2b"
     },
     {
@@ -484,8 +484,8 @@
           "ollama"
         ]
       },
-      "status": "installer_available",
-      "final_check": "installer",
+      "status": "pending_validation",
+      "final_check": "customer_clickable_linux_delivery",
       "profile_id": "linux-ollama-gemma4-e2b"
     }
   ],
@@ -499,6 +499,7 @@
     "Released routing rules only point to verified profiles.",
     "Explicit LiteRT selections that the live checker rejects are classified unsupported_route instead of being counted as missing installer work.",
     "macOS and Linux package definitions now exist. Their website routes remain pending_validation until native installer E2E passes; LiteRT 26B also needs the target 24 GB+ accelerated hardware check before release.",
-    "Linux Ollama Gemma 4 E2B was released after native Ubuntu real-model validation and successful execution of the final self-extracting .run package."
+    "Linux Ollama Gemma 4 E2B was released after native Ubuntu real-model validation and successful execution of the final self-extracting .run package.",
+    "Linux Ollama engine and self-extracting .run package passed real-model validation, but customer delivery remains pending because a terminal-only .run file does not satisfy the one-click/no-command customer requirement."
   ]
 }
