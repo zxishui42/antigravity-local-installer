@@ -190,9 +190,9 @@
         "min_memory_gb": 8,
         "max_memory_gb": 8
       },
-      "profile_id": "windows-ollama-gemma4-e2b-cpu-8gb",
+      "profile_id": "windows-ollama-qwen3-1.7b-cpu-8gb",
       "status": "pending_validation",
-      "final_check": "physical_windows_8gb"
+      "final_check": "integration_and_physical_windows_8gb"
     },
     {
       "id": "macos-apple-auto-litert-24plus",
@@ -544,6 +544,7 @@
     "Linux Ollama engine and self-extracting .run package passed real-model validation, but customer delivery remains pending because a terminal-only .run file does not satisfy the one-click/no-command customer requirement.",
     "macOS Apple Silicon Automatic uses Qwen3 1.7B at 8–15 GB, Qwen3 4B at 16–23 GB, and LiteRT + Gemma 4 26B at 24 GB+ once each package gate passes.",
     "The previous macOS Gemma 4 E2B Ollama candidate is not routed to lower-memory Macs because the real macOS runner showed that model could not start with only about 4.2 GiB available after overhead.",
-    "macOS CPU-only remains a product-definition gap because the live selector does not identify CPU architecture, so an arm64-only package must not be sent blindly."
+    "macOS CPU-only remains a product-definition gap because the live selector does not identify CPU architecture, so an arm64-only package must not be sent blindly.",
+    "Windows CPU-only 8 GB now targets the smaller Qwen3 1.7B candidate instead of Gemma 4 E2B; release still requires a real 8 GB Windows validation."
   ]
 }
