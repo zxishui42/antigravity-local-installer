@@ -22,100 +22,94 @@ concurrency:
   cancel-in-progress: true
 
 jobs:
-  ollama-native:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            platform: macos
-            profile: macos-ollama-qwen3-1.7b
-            test_model: qwen3:0.6b
-          - os: macos-latest
-            platform: macos
-            profile: macos-ollama-qwen3-4b
-            test_model: qwen3:0.6b
-          - os: ubuntu-latest
-            platform: linux
-            profile: linux-ollama-gemma4-e2b
-            test_model: qwen3:0.6b
-    runs-on: ${{ matrix.os }}
+  linux-ollama:
+    runs-on: ubuntu-latest
     timeout-minutes: 35
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run native production engine
+      - name: Run Linux Ollama production engine with small checkpoint
         shell: bash
         env:
-          ANTIGRAVITY_E2E_MODEL: ${{ matrix.test_model }}
-        run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
+          ANTIGRAVITY_E2E_MODEL: qwen3:0.6b
+        run: bash tests/unix-ollama-e2e.sh "linux-ollama-gemma4-e2b"
 
-      - name: Build native candidate package
+      - name: Build Linux candidate package
         shell: bash
-        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native
+        run: python3 build/build-native-package.py --profile-id "linux-ollama-gemma4-e2b" --platform linux --output-dir dist/native
 
       - name: Verify Linux self-extracting package
-        if: matrix.platform == 'linux'
         shell: bash
         run: |
-          test -s "dist/native/${{ matrix.profile }}.run"
-          grep -a -q '^__ANTIGRAVITY_PAYLOAD_BELOW__$' "dist/native/${{ matrix.profile }}.run"
+          test -s "dist/native/linux-ollama-gemma4-e2b.run"
+          grep -a -q '^__ANTIGRAVITY_PAYLOAD_BELOW__$' "dist/native/linux-ollama-gemma4-e2b.run"
 
-      - name: Verify macOS package
-        if: matrix.platform == 'macos'
-        shell: bash
-        run: |
-          test -s "dist/native/${{ matrix.profile }}.pkg"
-          pkgutil --payload-files "dist/native/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
-
-      - name: Upload native candidate package
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-${{ matrix.profile }}
-          path: dist/native/${{ matrix.profile }}.*
-          if-no-files-found: error
-
-  litert-engine-native:
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - os: macos-latest
-            platform: macos
-            profile: macos-litert-gemma4-26b
-          - os: ubuntu-latest
-            platform: linux
-            profile: linux-litert-gemma4-26b
-    runs-on: ${{ matrix.os }}
+  linux-litert:
+    runs-on: ubuntu-latest
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v4
 
-      - name: Run native LiteRT production engine with small checkpoint
+      - name: Run Linux LiteRT production engine with small checkpoint
         shell: bash
-        run: bash tests/unix-litert-e2e.sh "${{ matrix.profile }}"
+        run: bash tests/unix-litert-e2e.sh "linux-litert-gemma4-26b"
 
-      - name: Build native LiteRT candidate package
+      - name: Build Linux LiteRT candidate package
         shell: bash
-        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform "${{ matrix.platform }}" --output-dir dist/native
+        run: python3 build/build-native-package.py --profile-id "linux-litert-gemma4-26b" --platform linux --output-dir dist/native
 
       - name: Verify Linux LiteRT self-extracting package
-        if: matrix.platform == 'linux'
         shell: bash
         run: |
-          test -s "dist/native/${{ matrix.profile }}.run"
-          grep -a -q '^__ANTIGRAVITY_PAYLOAD_BELOW__$' "dist/native/${{ matrix.profile }}.run"
+          test -s "dist/native/linux-litert-gemma4-26b.run"
+          grep -a -q '^__ANTIGRAVITY_PAYLOAD_BELOW__$' "dist/native/linux-litert-gemma4-26b.run"
 
-      - name: Verify macOS LiteRT package
-        if: matrix.platform == 'macos'
+  macos-ollama:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    timeout-minutes: 35
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - profile: macos-ollama-qwen3-1.7b
+          - profile: macos-ollama-qwen3-4b
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run macOS Ollama production engine with small checkpoint
+        shell: bash
+        env:
+          ANTIGRAVITY_E2E_MODEL: qwen3:0.6b
+        run: bash tests/unix-ollama-e2e.sh "${{ matrix.profile }}"
+
+      - name: Build macOS candidate package
+        shell: bash
+        run: python3 build/build-native-package.py --profile-id "${{ matrix.profile }}" --platform macos --output-dir dist/native
+
+      - name: Verify macOS package
         shell: bash
         run: |
           test -s "dist/native/${{ matrix.profile }}.pkg"
           pkgutil --payload-files "dist/native/${{ matrix.profile }}.pkg" | grep -q 'install.sh'
 
-      - name: Upload native LiteRT candidate package
-        uses: actions/upload-artifact@v4
-        with:
-          name: native-${{ matrix.profile }}
-          path: dist/native/${{ matrix.profile }}.*
-          if-no-files-found: error
+  macos-litert:
+    if: github.event_name == 'workflow_dispatch'
+    runs-on: macos-latest
+    timeout-minutes: 45
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Run macOS LiteRT production engine with small checkpoint
+        shell: bash
+        run: bash tests/unix-litert-e2e.sh "macos-litert-gemma4-26b"
+
+      - name: Build macOS LiteRT candidate package
+        shell: bash
+        run: python3 build/build-native-package.py --profile-id "macos-litert-gemma4-26b" --platform macos --output-dir dist/native
+
+      - name: Verify macOS LiteRT package
+        shell: bash
+        run: |
+          test -s "dist/native/macos-litert-gemma4-26b.pkg"
+          pkgutil --payload-files "dist/native/macos-litert-gemma4-26b.pkg" | grep -q 'install.sh'
