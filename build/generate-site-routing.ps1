@@ -32,6 +32,13 @@ function Get-InstallerFile($Profile){
     throw ('Unsupported release platform for '+[string]$Profile.id+': '+$platform)
 }
 
+function Test-ProfileReady($Profile){
+    if($null -eq $Profile){ return $false }
+    if(-not [bool]$Profile.verified){ return $false }
+    if($null -ne $Profile.release -and -not [bool]$Profile.release){ return $false }
+    return $true
+}
+
 function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime,$VramGb,$MemoryGb){
     $rule=@($routing.rules | Where-Object {
         @($_.match.os) -contains $Os -and
@@ -41,12 +48,28 @@ function Resolve-Profile([string]$Os,[string]$Graphics,[string]$Runtime,$VramGb,
         (Match-Range $MemoryGb $_.match 'min_memory_gb' 'max_memory_gb')
     } | Sort-Object @{Expression={[int]$_.priority};Descending=$true} | Select-Object -First 1)[0]
     if($null -eq $rule){ return $null }
+
     $profile=$null
     if(-not[string]::IsNullOrWhiteSpace([string]$rule.profile_id)){
         $profile=@($packages.profiles | Where-Object { [string]$_.id -eq [string]$rule.profile_id } | Select-Object -First 1)[0]
         if($null -eq $profile){ throw ("Routing rule points to a missing profile: "+[string]$rule.profile_id) }
     }
-    return [pscustomobject]@{rule=$rule;profile=$profile}
+
+    $fallbackProfile=$null
+    if(-not[string]::IsNullOrWhiteSpace([string]$rule.fallback_profile_id)){
+        $fallbackProfile=@($packages.profiles | Where-Object { [string]$_.id -eq [string]$rule.fallback_profile_id } | Select-Object -First 1)[0]
+        if($null -eq $fallbackProfile){ throw ("Routing rule points to a missing fallback profile: "+[string]$rule.fallback_profile_id) }
+    }
+
+    return [pscustomobject]@{rule=$rule;profile=$profile;fallback_profile=$fallbackProfile}
+}
+
+function Apply-ProfileToRow($Row,$Profile){
+    if($null -eq $Profile){ return }
+    $Row.profile_id=[string]$Profile.id
+    if($null -ne $Profile.min_ram_gb){$Row.required_ram_gb=[double]$Profile.min_ram_gb}
+    if($null -ne $Profile.min_vram_gb){$Row.required_vram_gb=[double]$Profile.min_vram_gb}
+    if(-not[string]::IsNullOrWhiteSpace([string]$Profile.release_gate)){$Row.release_gate=[string]$Profile.release_gate}
 }
 
 function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphics,[string]$HardwareId,[string]$HardwareLabel,$VramGb,$Memory,[string]$Runtime){
@@ -61,36 +84,48 @@ function Add-Row([System.Collections.ArrayList]$Rows,[string]$Os,[string]$Graphi
         runtime=$Runtime
         status=[string]$routing.default_status
         profile_id=$null
+        preferred_profile_id=$null
+        fallback_profile_id=$null
+        fallback_used=$false
         installer_file=$null
         final_check='none'
         required_ram_gb=$null
         required_vram_gb=$null
         release_gate=$null
     }
+
     if($null -ne $resolved){
-        if($null -ne $resolved.profile){
-            $row.profile_id=[string]$resolved.profile.id
-            if($null -ne $resolved.profile.min_ram_gb){$row.required_ram_gb=[double]$resolved.profile.min_ram_gb}
-            if($null -ne $resolved.profile.min_vram_gb){$row.required_vram_gb=[double]$resolved.profile.min_vram_gb}
-            if(-not[string]::IsNullOrWhiteSpace([string]$resolved.profile.release_gate)){$row.release_gate=[string]$resolved.profile.release_gate}
-        }
+        if($null -ne $resolved.profile){$row.preferred_profile_id=[string]$resolved.profile.id}
+        if($null -ne $resolved.fallback_profile){$row.fallback_profile_id=[string]$resolved.fallback_profile.id}
         $row.final_check=[string]$resolved.rule.final_check
+
         $ruleStatus=[string]$resolved.rule.status
-        if($ruleStatus -eq 'installer_available'){
-            if($null -ne $resolved.profile -and [bool]$resolved.profile.verified -and ($null -eq $resolved.profile.release -or [bool]$resolved.profile.release)){
+        $primaryReady=Test-ProfileReady $resolved.profile
+        $fallbackReady=Test-ProfileReady $resolved.fallback_profile
+
+        if($ruleStatus -eq 'installer_available' -or $ruleStatus -eq 'pending_validation'){
+            if($primaryReady){
+                Apply-ProfileToRow $row $resolved.profile
                 $row.status='installer_available'
                 $row.installer_file=(Get-InstallerFile $resolved.profile)
+            } elseif($fallbackReady){
+                Apply-ProfileToRow $row $resolved.fallback_profile
+                $row.status='installer_available'
+                $row.fallback_used=$true
+                $row.installer_file=(Get-InstallerFile $resolved.fallback_profile)
             } else {
+                Apply-ProfileToRow $row $resolved.profile
                 $row.status='pending_validation'
             }
-        } elseif($ruleStatus -eq 'pending_validation'){
-            $row.status='pending_validation'
         } else {
+            Apply-ProfileToRow $row $resolved.profile
             $row.status=$ruleStatus
         }
     }
+
     [void]$Rows.Add([pscustomobject]$row)
 }
+
 $rows=New-Object System.Collections.ArrayList
 $runtimes=@($hardware.runtimes | ForEach-Object { [string]$_.id })
 
