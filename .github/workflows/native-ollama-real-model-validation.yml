@@ -60,6 +60,10 @@ jobs:
           pkg="dist/native-real/${{ matrix.profile }}.pkg"
           test -s "$pkg"
           pkgutil --payload-files "$pkg" | grep -q 'install.sh'
+          state="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}/install-state.json"
+          install_log="$HOME/Library/Logs/AntigravityLocal/${{ matrix.profile }}-install.log"
+          result_file="$HOME/Library/Logs/AntigravityLocal/${{ matrix.profile }}-install.exit"
+          rm -f "$state" "$install_log" "$result_file"
           if ! sudo installer -pkg "$pkg" -target /; then
             echo "===== Antigravity postinstall log ====="
             sudo cat /var/tmp/antigravity-local-postinstall.log 2>/dev/null || true
@@ -67,8 +71,30 @@ jobs:
             sudo tail -n 250 /var/log/install.log 2>/dev/null || true
             exit 1
           fi
-          state="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}/install-state.json"
+
+          for _ in $(seq 1 210); do
+            if [ -f "$result_file" ]; then
+              break
+            fi
+            sleep 10
+          done
+
+          if [ ! -f "$result_file" ]; then
+            echo "Background package installation did not finish within the validation window."
+            cat "$install_log" 2>/dev/null || true
+            exit 1
+          fi
+
+          result="$(cat "$result_file")"
+          if [ "$result" != "0" ]; then
+            echo "Background package installation failed with exit code $result."
+            cat "$install_log" 2>/dev/null || true
+            exit 1
+          fi
+
           test -f "$state"
+          echo "===== Final package background install log tail ====="
+          tail -n 120 "$install_log" 2>/dev/null || true
           PROFILE="${{ matrix.profile }}" MODEL="${{ matrix.model }}" python3 - "$state" <<'PY'
           import json,os,sys
           data=json.load(open(sys.argv[1]))
