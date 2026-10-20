@@ -67,8 +67,9 @@ jobs:
                   "workflow":"Native macOS Ollama real-model validation",
                   "workflow_run_id":int(os.environ["VALIDATION_RUN_ID"]),
                   "workflow_head_sha":os.environ["VALIDATION_HEAD_SHA"],
-                  "validated_path":"native engine + production model + final macOS pkg install",
+                  "validated_path":"production model executed successfully on the macOS CI host; final pkg installed successfully with CI-only RAM preflight override; production package keeps its real RAM gate",
                   "job_conclusion":"success",
+                  "ci_ram_preflight_override_gb":1,
               }
               subprocess.run([
                   "python3","build/promote-profile.py",
