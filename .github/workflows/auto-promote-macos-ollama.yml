@@ -6,6 +6,7 @@ on:
     types: [completed]
 
 permissions:
+  actions: read
   contents: write
 
 concurrency:
@@ -14,7 +15,7 @@ concurrency:
 
 jobs:
   promote:
-    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    if: github.event.workflow_run.head_branch == 'main'
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -23,18 +24,20 @@ jobs:
         with:
           ref: main
 
-      - name: Promote only profiles whose full release gate passed
+      - name: Promote each macOS tier whose own final package job passed
         shell: bash
         env:
+          GH_TOKEN: ${{ github.token }}
           VALIDATION_RUN_ID: ${{ github.event.workflow_run.id }}
           VALIDATION_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
+          gh api "repos/$GITHUB_REPOSITORY/actions/runs/$VALIDATION_RUN_ID/jobs?per_page=100" > "$RUNNER_TEMP/jobs.json"
           python3 - <<'PY'
           import json, os, subprocess
           from pathlib import Path
 
-          root=Path(".")
-          pack=json.loads((root/"src/_internal/pack.json").read_text())
+          jobs=json.load(open(os.path.join(os.environ["RUNNER_TEMP"],"jobs.json"))).get("jobs",[])
+          pack=json.loads(Path("src/_internal/pack.json").read_text())
           profiles={p["id"]:p for p in pack["profiles"]}
 
           targets=[
@@ -42,12 +45,20 @@ jobs:
             ("macos-ollama-qwen3-4b","native_pkg_install_and_real_qwen3_4b"),
           ]
 
+          promoted=0
           for profile_id, gate in targets:
+              matched=[j for j in jobs if profile_id in j.get("name","")]
+              passed=any(j.get("conclusion")=="success" for j in matched)
+              print(profile_id, "job conclusions:", [j.get("conclusion") for j in matched])
+              if not passed:
+                  print("Not promoting", profile_id, "- its own validation job did not pass.")
+                  continue
+
               p=profiles.get(profile_id)
               if not p:
                   raise SystemExit(f"Missing promotion target: {profile_id}")
               if p.get("release") is True and p.get("verified") is True:
-                  print(f"Already released: {profile_id}")
+                  print("Already released:", profile_id)
                   continue
               if p.get("release_gate") != gate:
                   raise SystemExit(f"Gate mismatch for {profile_id}: {p.get('release_gate')} != {gate}")
@@ -57,6 +68,7 @@ jobs:
                   "workflow_run_id":int(os.environ["VALIDATION_RUN_ID"]),
                   "workflow_head_sha":os.environ["VALIDATION_HEAD_SHA"],
                   "validated_path":"native engine + production model + final macOS pkg install",
+                  "job_conclusion":"success",
               }
               subprocess.run([
                   "python3","build/promote-profile.py",
@@ -64,6 +76,9 @@ jobs:
                   "--gate",gate,
                   "--evidence-json",json.dumps(evidence,separators=(",",":")),
               ],check=True)
+              promoted += 1
+
+          print("Profiles promoted:", promoted)
           PY
 
       - name: Validate promoted routing before commit
