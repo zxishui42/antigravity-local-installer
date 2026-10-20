@@ -6,6 +6,10 @@ on:
     branches: [main]
     paths:
       - '.github/workflows/native-ollama-real-model-validation.yml'
+      - 'build/build-native-package.py'
+      - 'build/build-unix-profile.py'
+      - 'src/unix/install.sh'
+      - 'tests/unix-ollama-e2e.sh'
 
 concurrency:
   group: native-ollama-real-model-validation
@@ -80,7 +84,13 @@ jobs:
           pkg="dist/native-real/${{ matrix.profile }}.pkg"
           test -s "$pkg"
           pkgutil --payload-files "$pkg" | grep -q 'install.sh'
-          sudo installer -pkg "$pkg" -target /
+          if ! sudo installer -pkg "$pkg" -target /; then
+            echo "===== Antigravity postinstall log ====="
+            sudo cat /var/tmp/antigravity-local-postinstall.log 2>/dev/null || true
+            echo "===== macOS installer log tail ====="
+            sudo tail -n 250 /var/log/install.log 2>/dev/null || true
+            exit 1
+          fi
           state="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}/install-state.json"
           test -f "$state"
           PROFILE="${{ matrix.profile }}" MODEL="${{ matrix.model }}" python3 - "$state" <<'PY'
