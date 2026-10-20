@@ -23,6 +23,9 @@ export function resolveInstaller(manifest, input) {
     return {
       status: route.status,
       profileId: route.profile_id || null,
+      preferredProfileId: route.preferred_profile_id || null,
+      fallbackProfileId: route.fallback_profile_id || null,
+      fallbackUsed: Boolean(route.fallback_used),
       finalCheck: route.final_check || null,
       requiredRamGb: route.required_ram_gb == null ? null : Number(route.required_ram_gb),
       requiredVramGb: route.required_vram_gb == null ? null : Number(route.required_vram_gb),
@@ -55,6 +58,9 @@ export function resolveInstaller(manifest, input) {
   return {
     status: "installer_available",
     profileId: route.profile_id,
+    preferredProfileId: route.preferred_profile_id || route.profile_id || null,
+    fallbackProfileId: route.fallback_profile_id || null,
+    fallbackUsed: Boolean(route.fallback_used),
     installerFile: pkg.installer_file,
     sha256: pkg.sha256,
     sizeBytes: pkg.size_bytes,
