@@ -394,9 +394,20 @@
       "priority": 155,
       "verified": false,
       "release": false,
-      "verification_status": "candidate_requires_ci_then_physical_windows_8gb",
+      "verification_status": "integration_passed_physical_windows_8gb_pending",
       "source_url": "https://registry.ollama.ai/v2/library/qwen3/manifests/1.7b",
-      "release_gate": "integration_and_physical_windows_8gb"
+      "release_gate": "integration_and_physical_windows_8gb",
+      "integration_validated": true,
+      "validation_evidence": {
+        "environment": "GitHub Windows runner",
+        "ram_gb": 16,
+        "gpu": "Microsoft Hyper-V Video",
+        "antigravity_output": "OK",
+        "model_bytes": 1359301723,
+        "loaded_size_bytes": 1886629395,
+        "vram_bytes": 0,
+        "validated_run_id": 39348036551
+      }
     }
   ]
 }
