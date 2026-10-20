@@ -53,7 +53,8 @@ foreach($rule in @($routing.rules)){
         Assert-True ($null -ne $target -and [bool]$target.verified -and ($null -eq $target.release -or [bool]$target.release)) ("Released routing rule points to a non-released profile: "+$profileId)
     }
     if($status -eq 'pending_validation'){
-        Assert-True ($null -ne $target -and -not [bool]$target.verified) ("Pending validation rule should point to an unverified profile: "+$profileId)
+        $notReleasable=$null -ne $target -and ((-not [bool]$target.verified) -or ($null -ne $target.release -and -not [bool]$target.release))
+        Assert-True $notReleasable ("Pending validation rule should point to a profile that is not yet releasable: "+$profileId)
     }
 }
 
