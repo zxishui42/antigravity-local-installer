@@ -2,6 +2,11 @@ name: Build paid delivery ZIPs
 
 on:
   workflow_dispatch:
+  push:
+    branches: [main]
+    paths:
+      - 'build/build-paid-delivery-zips.py'
+      - '.github/workflows/build-paid-delivery-zips.yml'
 
 permissions:
   actions: read
