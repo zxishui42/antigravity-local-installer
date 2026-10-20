@@ -45,6 +45,26 @@ assert(r.status === "not_enough_ram", "Low RAM must not receive the installer.")
 r = resolveInstaller(manifest, { ...baseInput, systemRamGb: 16 });
 assert(r.status === "installer_available" && r.installerFile === "profiles/p1.exe", "Valid hardware should resolve to the released package.");
 
+manifest = {
+  packages: { p1: packageData },
+  routes: [{
+    os: "windows",
+    graphics: "amd",
+    hardware_id: "rx-5700-xt-8",
+    memory_gb: null,
+    runtime: "automatic",
+    status: "installer_available",
+    profile_id: "p1",
+    preferred_profile_id: "p2",
+    fallback_profile_id: "p1",
+    fallback_used: true,
+    required_ram_gb: 16,
+  }],
+};
+r = resolveInstaller(manifest, { ...baseInput, systemRamGb: 16 });
+assert(r.status === "installer_available" && r.fallbackUsed === true, "Released fallback route must be visible to the website.");
+assert(r.preferredProfileId === "p2" && r.fallbackProfileId === "p1", "Fallback route metadata was lost.");
+
 for (const status of ["pending_validation", "pending_product_definition", "unsupported_route"]) {
   manifest = {
     packages: {},
