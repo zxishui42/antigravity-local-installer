@@ -60,10 +60,17 @@ jobs:
           pkg="dist/native-real/${{ matrix.profile }}.pkg"
           test -s "$pkg"
           pkgutil --payload-files "$pkg" | grep -q 'install.sh'
-          state="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}/install-state.json"
+          install_root="$HOME/Library/Application Support/AntigravityLocal/${{ matrix.install_folder }}"
+          state="$install_root/install-state.json"
           install_log="$HOME/Library/Logs/AntigravityLocal/${{ matrix.profile }}-install.log"
           result_file="$HOME/Library/Logs/AntigravityLocal/${{ matrix.profile }}-install.exit"
-          rm -f "$state" "$install_log" "$result_file"
+
+          # The direct native E2E above proves the engine/model path. Remove it before
+          # installing the final package so the package must succeed from a clean
+          # per-profile customer state instead of reusing runtime/model files.
+          rm -rf "$install_root"
+          rm -f "$install_log" "$result_file"
+
           if ! sudo installer -pkg "$pkg" -target /; then
             echo "===== Antigravity postinstall log ====="
             sudo cat /var/tmp/antigravity-local-postinstall.log 2>/dev/null || true
