@@ -61,6 +61,9 @@ foreach($rule in @($routing.rules)){
 $out=Get-Content (Join-Path $repoRoot 'dist\site-installer-routing.json') -Raw | ConvertFrom-Json
 Assert-True ([int]$out.configuration_count -gt 100) 'Routing generator did not expand the website configuration space.'
 Assert-True ([int]$out.installer_available_count -gt 0) 'No website configuration maps to a verified installer.'
+Assert-True ([int]$out.no_verified_installer_count -eq 0) 'At least one live-site configuration is not intentionally classified.'
+$classified=[int]$out.installer_available_count+[int]$out.pending_validation_count+[int]$out.unsupported_route_count+[int]$out.pending_product_definition_count
+Assert-True ($classified -eq [int]$out.configuration_count) 'Routing status counts do not add up to the live-site configuration count.'
 
 $cpu16=@($out.configurations | Where-Object { $_.os -eq 'windows' -and $_.graphics -eq 'cpu-only' -and [int]$_.memory_gb -eq 16 -and $_.runtime -eq 'automatic' } | Select-Object -First 1)[0]
 Assert-True ($null -ne $cpu16 -and $cpu16.profile_id -eq 'windows-ollama-gemma4-e4b-qat') 'Windows CPU-only 16 GB did not route to validated E4B profile.'
