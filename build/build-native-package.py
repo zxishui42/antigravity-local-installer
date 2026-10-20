@@ -80,6 +80,7 @@ if [ -f "$PID_FILE" ]; then
 fi
 
 rm -f "$RESULT_FILE"
+cd "$HOME"
 nohup /bin/bash -c '
   /bin/bash "$1" >>"$2" 2>&1
   rc=$?
