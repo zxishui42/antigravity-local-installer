@@ -1,0 +1,84 @@
+name: Auto-promote validated macOS Ollama tiers
+
+on:
+  workflow_run:
+    workflows: ["Native Ollama real-model validation"]
+    types: [completed]
+
+permissions:
+  contents: write
+
+concurrency:
+  group: auto-promote-macos-ollama
+  cancel-in-progress: false
+
+jobs:
+  promote:
+    if: github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.head_branch == 'main'
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout current main
+        uses: actions/checkout@v4
+        with:
+          ref: main
+
+      - name: Promote only profiles whose full release gate passed
+        shell: bash
+        env:
+          VALIDATION_RUN_ID: ${{ github.event.workflow_run.id }}
+          VALIDATION_HEAD_SHA: ${{ github.event.workflow_run.head_sha }}
+        run: |
+          python3 - <<'PY'
+          import json, os, subprocess
+          from pathlib import Path
+
+          root=Path(".")
+          pack=json.loads((root/"src/_internal/pack.json").read_text())
+          profiles={p["id"]:p for p in pack["profiles"]}
+
+          targets=[
+            ("macos-ollama-qwen3-1.7b","native_pkg_install_and_real_qwen3_1_7b"),
+            ("macos-ollama-qwen3-4b","native_pkg_install_and_real_qwen3_4b"),
+          ]
+
+          for profile_id, gate in targets:
+              p=profiles.get(profile_id)
+              if not p:
+                  raise SystemExit(f"Missing promotion target: {profile_id}")
+              if p.get("release") is True and p.get("verified") is True:
+                  print(f"Already released: {profile_id}")
+                  continue
+              if p.get("release_gate") != gate:
+                  raise SystemExit(f"Gate mismatch for {profile_id}: {p.get('release_gate')} != {gate}")
+
+              evidence={
+                  "workflow":"Native Ollama real-model validation",
+                  "workflow_run_id":int(os.environ["VALIDATION_RUN_ID"]),
+                  "workflow_head_sha":os.environ["VALIDATION_HEAD_SHA"],
+                  "validated_path":"native engine + production model + final macOS pkg install",
+              }
+              subprocess.run([
+                  "python3","build/promote-profile.py",
+                  "--profile-id",profile_id,
+                  "--gate",gate,
+                  "--evidence-json",json.dumps(evidence,separators=(",",":")),
+              ],check=True)
+          PY
+
+      - name: Validate promoted routing before commit
+        shell: pwsh
+        run: ./tests/profile-catalog.ps1
+
+      - name: Commit promotion
+        shell: bash
+        run: |
+          if git diff --quiet; then
+            echo "No promotion changes needed."
+            exit 0
+          fi
+          git config user.name "antigravity-installer-bot"
+          git config user.email "actions@users.noreply.github.com"
+          git add src/_internal/pack.json catalog/package-routing.json
+          git commit -m "Promote validated macOS Ollama installer tiers"
+          git push origin HEAD:main
